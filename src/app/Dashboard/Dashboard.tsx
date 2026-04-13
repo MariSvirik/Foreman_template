@@ -36,23 +36,29 @@ import {
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  ChartLineIcon,
   DatabaseIcon,
   DollarSignIcon,
   ExclamationTriangleIcon,
   ExternalLinkAltIcon,
   PercentageIcon,
   SearchIcon,
-  ServerIcon,
-  UsersIcon,
+  SecurityIcon,
 } from '@patternfly/react-icons';
+import { useNavigate } from 'react-router-dom';
 
 // Mock data for demonstration
 const mockMetrics = {
   totalUsers: 1247,
   activeUsers: 892,
   revenue: 24580,
-  conversion: 3.2
+  conversion: 3.2,
+};
+
+const mockErrataMetrics = {
+  securityAdvisories: 42,
+  applicableToHosts: 156,
+  repositoriesInSync: 8,
+  repositoriesTotal: 10,
 };
 
 const mockRecentActivity = [
@@ -73,11 +79,12 @@ const mockTableData = [
 const Dashboard: React.FunctionComponent = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoading, _setIsLoading] = React.useState(false);
+  const navigate = useNavigate();
 
   const getStatusLabel = (status: string) => {
     let color: 'green' | 'red' | 'orange' | 'blue' = 'blue';
-    if (status === 'Active' || status === 'success') color = 'green';
-    else if (status === 'Inactive' || status === 'danger') color = 'red';
+    if (status === 'Active' || status === 'success' || status === 'Valid') color = 'green';
+    else if (status === 'Inactive' || status === 'danger' || status === 'Invalid') color = 'red';
     else if (status === 'Pending' || status === 'info') color = 'blue';
 
     return <Label color={color}>{status}</Label>;
@@ -114,16 +121,16 @@ const Dashboard: React.FunctionComponent = () => {
             <Card isFullHeight>
               <CardTitle>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <UsersIcon />
-                  <span>Total Users</span>
+                  <SecurityIcon />
+                  <span>Security errata</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
-                  <Title headingLevel="h2" size="2xl">{mockMetrics.totalUsers.toLocaleString()}</Title>
+                  <Title headingLevel="h2" size="2xl">{mockErrataMetrics.securityAdvisories.toLocaleString()}</Title>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--xs)' }}>
                     {getTrendIcon(true)}
-                    <Text component="small">+12% from last month</Text>
+                    <Text component="small">New advisories this month</Text>
                   </div>
                 </Stack>
               </CardBody>
@@ -134,16 +141,16 @@ const Dashboard: React.FunctionComponent = () => {
             <Card isFullHeight>
               <CardTitle>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <ChartLineIcon />
-                  <span>Active Users</span>
+                  <ExclamationTriangleIcon />
+                  <span>Applicable errata</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
-                  <Title headingLevel="h2" size="2xl">{mockMetrics.activeUsers.toLocaleString()}</Title>
+                  <Title headingLevel="h2" size="2xl">{mockErrataMetrics.applicableToHosts.toLocaleString()}</Title>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--xs)' }}>
-                    {getTrendIcon(true)}
-                    <Text component="small">+8% from last month</Text>
+                    {getTrendIcon(false)}
+                    <Text component="small">Across registered content hosts</Text>
                   </div>
                 </Stack>
               </CardBody>
@@ -323,28 +330,29 @@ const Dashboard: React.FunctionComponent = () => {
             <Card>
               <CardTitle>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <ServerIcon />
-                  <span>Server Status</span>
+                  <SecurityIcon />
+                  <span>Errata repositories</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>API Server</Text>
-                    <Label color="green">Online</Label>
+                    <Text>Synced</Text>
+                    <Label color="green">
+                      {mockErrataMetrics.repositoriesInSync} of {mockErrataMetrics.repositoriesTotal}
+                    </Label>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>Database</Text>
-                    <Label color="green">Online</Label>
+                    <Text>Last metadata sync</Text>
+                    <Text component="small">12 minutes ago</Text>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>Cache Server</Text>
-                    <Label color="orange">Warning</Label>
+                    <Text>Security advisories (repo)</Text>
+                    <Label color="blue">{mockErrataMetrics.securityAdvisories}</Label>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>File Storage</Text>
-                    <Label color="green">Online</Label>
-                  </div>
+                  <Button variant="link" size="sm" isInline onClick={() => navigate('/errata')}>
+                    View errata list
+                  </Button>
                 </Stack>
               </CardBody>
             </Card>

@@ -1,9 +1,7 @@
 {
-  "name": "patternfly-seed",
+  "name": "foreman-template",
   "version": "0.0.2",
-  "description": "An open source build scaffolding utility for web apps.",
-  "repository": "https://github.com/patternfly/patternfly-react-seed.git",
-  "homepage": "https://patternfly-react-seed.surge.sh",
+  "description": "Foreman UI workspace based on PatternFly React (PatternFly 5).",
   "license": "MIT",
   "private": true,
   "scripts": {

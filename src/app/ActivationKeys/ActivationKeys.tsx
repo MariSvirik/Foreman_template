@@ -41,6 +41,7 @@ import {
     AngleRightIcon,
     EllipsisVIcon
 } from '@patternfly/react-icons';
+import { Link } from 'react-router-dom';
 
 // Mock data for the activation key
 const activationKeyData = {
@@ -99,7 +100,14 @@ const ActivationKeys: React.FunctionComponent = () => {
                 <Stack hasGutter>
                     {/* Breadcrumbs */}
                     <Breadcrumb>
-                        <BreadcrumbItem to="/activation-keys">Activation keys</BreadcrumbItem>
+                        <BreadcrumbItem
+                            to="/activation-keys"
+                            render={({ className, ariaCurrent }) => (
+                                <Link className={className} to="/activation-keys" aria-current={ariaCurrent}>
+                                    Activation keys
+                                </Link>
+                            )}
+                        />
                         <BreadcrumbItem isActive>{activationKeyData.name}</BreadcrumbItem>
                     </Breadcrumb>
 

@@ -22,7 +22,7 @@ import {
     CodeIcon,
     CopyIcon,
 } from '@patternfly/react-icons';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 interface AddToContainerfileProps {
     selectedPackages?: Set<number>;
@@ -77,8 +77,22 @@ const AddToContainerfile: React.FunctionComponent<AddToContainerfileProps> = () 
         <PageSection style={{ backgroundColor: 'white' }}>
             <Stack hasGutter>
                 <Breadcrumb>
-                    <BreadcrumbItem to="#" onClick={handleReturnToHost}>Hosts</BreadcrumbItem>
-                    <BreadcrumbItem to="#" onClick={handleReturnToHost}>PowerPuffGirl3.0-Everythingnice.com</BreadcrumbItem>
+                    <BreadcrumbItem
+                        to="/"
+                        render={({ className, ariaCurrent }) => (
+                            <Link className={className} to="/" aria-current={ariaCurrent}>
+                                Hosts
+                            </Link>
+                        )}
+                    />
+                    <BreadcrumbItem
+                        to="/powerpuffgirl"
+                        render={({ className, ariaCurrent }) => (
+                            <Link className={className} to="/powerpuffgirl" aria-current={ariaCurrent}>
+                                PowerPuffGirl3.0-Everythingnice.com
+                            </Link>
+                        )}
+                    />
                     <BreadcrumbItem isActive>Add transient packages to Containerfile</BreadcrumbItem>
                 </Breadcrumb>
 

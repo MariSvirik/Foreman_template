@@ -1,6 +1,8 @@
-# Patternfly Seed
+# Foreman Template
 
-Patternfly Seed is an open source build scaffolding utility for web apps. The primary purpose of this project is to give developers a jump start when creating new projects that will use patternfly. A secondary purpose of this project is to serve as a reference for how to configure various aspects of an application that uses patternfly, webpack, react, typescript, etc.
+This workspace is a copy of the [PatternFly React seed](https://github.com/patternfly/patternfly-react-seed), tailored as a starting point for Foreman-related UI. It uses **PatternFly 5** (`@patternfly/react-core` v5 and related packages).
+
+The original seed is an open source build scaffolding utility for web apps. The primary purpose of this project is to give developers a jump start when creating new projects that will use PatternFly. A secondary purpose is to serve as a reference for how to configure various aspects of an application that uses PatternFly, webpack, React, TypeScript, etc.
 
 Out of the box you'll get an app layout with chrome (header/sidebar), routing, build pipeline, test suite, and some code quality tools. Basically, all the essentials.
 
@@ -9,8 +11,7 @@ Out of the box you'll get an app layout with chrome (header/sidebar), routing, b
 ## Quick-start
 
 ```bash
-git clone https://github.com/patternfly/patternfly-react-seed
-cd patternfly-react-seed
+cd Foreman_template
 npm install && npm run start:dev
 ```
 ## Development scripts

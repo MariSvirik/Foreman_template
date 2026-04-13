@@ -1,15 +1,21 @@
 import * as React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Dashboard } from '@app/Dashboard/Dashboard';
-import { Support } from '@app/Support/Support';
 import { Repositories } from '@app/Repositories/Repositories';
 import { PowerPuffGirl } from '@app/PowerPuffGirl/PowerPuffGirl';
 import { AddToContainerfile } from '@app/AddToContainerfile/AddToContainerfile';
-import { RecurringLogic } from '@app/RecurringLogic/RecurringLogic';
 import { ActivationKeys } from '@app/ActivationKeys/ActivationKeys';
-import { MirrorRepository } from '@app/MirrorRepository/MirrorRepository';
-import { GeneralSettings } from '@app/Settings/General/GeneralSettings';
-import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
+import { ProductDetail } from '@app/ProductDetail/ProductDetail';
+import { CreateHost } from '@app/CreateHost/CreateHost';
+import { TaskDetail } from '@app/TaskDetail/TaskDetail';
+import { TasksIndex } from '@app/Tasks/TasksIndex';
+import { TemplateIndex } from '@app/TemplateIndex/TemplateIndex';
+import { TemplateDetail } from '@app/TemplateDetail/TemplateDetail';
+import { ContentTypes } from '@app/ContentTypes/ContentTypes';
+import { ErrataIndex } from '@app/Errata/ErrataIndex';
+import { ErrataDetail } from '@app/Errata/ErrataDetail';
+import { PackageDetail } from '@app/Packages/PackageDetail';
+import { Packages } from '@app/Packages/Packages';
 import { NotFound } from '@app/NotFound/NotFound';
 
 export interface IAppRoute {
@@ -28,6 +34,7 @@ export interface IAppRouteGroup {
 
 export type AppRouteConfig = IAppRoute | IAppRouteGroup;
 
+// Products route has been removed - do not add it back
 const routes: AppRouteConfig[] = [
   {
     element: <Dashboard />,
@@ -39,9 +46,71 @@ const routes: AppRouteConfig[] = [
   {
     element: <Repositories />,
     exact: true,
-    label: 'Repositories',
+    label: 'Products',
     path: '/repositories',
-    title: 'PatternFly Seed | Repositories',
+    title: 'PatternFly Seed | Products',
+  }, // Products route
+  {
+    element: <ContentTypes />,
+    exact: true,
+    label: 'Content types',
+    path: '/content-types',
+    title: 'PatternFly Seed | Content types',
+  },
+  {
+    element: <ErrataIndex />,
+    exact: true,
+    path: '/errata',
+    title: 'PatternFly Seed | Errata',
+  },
+  {
+    element: <ErrataDetail />,
+    exact: true,
+    path: '/errata/:errataId',
+    title: 'PatternFly Seed | Errata detail',
+  },
+  {
+    element: <Packages />,
+    exact: true,
+    path: '/packages',
+    title: 'PatternFly Seed | Packages',
+  },
+  {
+    element: <PackageDetail />,
+    exact: true,
+    path: '/packages/:packageId',
+    title: 'PatternFly Seed | Package detail',
+  },
+  {
+    element: <ProductDetail />,
+    exact: true,
+    path: '/products/:productName',
+    title: 'PatternFly Seed | Product Detail',
+  },
+  {
+    element: <TasksIndex />,
+    exact: true,
+    path: '/tasks',
+    title: 'PatternFly Seed | Tasks',
+  },
+  {
+    element: <TaskDetail />,
+    exact: true,
+    path: '/tasks/:taskId',
+    title: 'PatternFly Seed | Task Detail',
+  },
+  {
+    element: <TemplateIndex />,
+    exact: true,
+    label: 'Template',
+    path: '/template',
+    title: 'PatternFly Seed | Template',
+  },
+  {
+    element: <TemplateDetail />,
+    exact: true,
+    path: '/template/:templateId',
+    title: 'PatternFly Seed | Template detail',
   },
   {
     element: <PowerPuffGirl />,
@@ -57,49 +126,21 @@ const routes: AppRouteConfig[] = [
     title: 'PatternFly Seed | Add transient packages to Containerfile',
   },
   {
-    element: <RecurringLogic />,
-    exact: true,
-    label: 'Recurring Logic',
-    path: '/recurring-logic',
-    title: 'PatternFly Seed | Recurring Logic',
-  },
-  {
-    element: <ActivationKeys />,
-    exact: true,
-    label: 'Activation Keys',
-    path: '/activation-keys',
-    title: 'PatternFly Seed | Activation Keys',
-  },
-  {
-    element: <MirrorRepository />,
-    exact: true,
-    label: 'Mirror Repository',
-    path: '/mirror-repository',
-    title: 'PatternFly Seed | Mirror Repository',
-  },
-  {
-    element: <Support />,
-    exact: true,
-    label: 'Support',
-    path: '/support',
-    title: 'PatternFly Seed | Support Page',
-  },
-  {
-    label: 'Settings',
+    label: 'Other projects',
     routes: [
       {
-        element: <GeneralSettings />,
+        element: <CreateHost />,
         exact: true,
-        label: 'General',
-        path: '/settings/general',
-        title: 'PatternFly Seed | General Settings',
+        label: 'Create Host',
+        path: '/hosts/create',
+        title: 'PatternFly Seed | Create Host',
       },
       {
-        element: <ProfileSettings />,
+        element: <ActivationKeys />,
         exact: true,
-        label: 'Profile',
-        path: '/settings/profile',
-        title: 'PatternFly Seed | Profile Settings',
+        label: 'Activation Keys',
+        path: '/activation-keys',
+        title: 'PatternFly Seed | Activation Keys',
       },
     ],
   },
