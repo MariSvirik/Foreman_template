@@ -2,6 +2,8 @@ import * as React from 'react';
 import {
     Alert,
     AlertActionCloseButton,
+    Breadcrumb,
+    BreadcrumbItem,
     Button,
     Card,
     CardBody,
@@ -14,26 +16,27 @@ import {
     EmptyStateIcon,
     MenuToggle,
     PageSection,
+    SearchInput,
     Select,
     SelectList,
     SelectOption,
     Spinner,
-    Split,
-    SplitItem,
-    Stack,
     Tab,
     TabContent,
     TabContentBody,
     TabTitleText,
     Tabs,
     Text,
-    TextInput,
     Title,
     Toolbar,
     ToolbarContent,
     ToolbarGroup,
     ToolbarItem,
 } from '@patternfly/react-core';
+import { BulkSelect, BulkSelectValue } from '@patternfly/react-component-groups/dist/esm/BulkSelect';
+import { css } from '@patternfly/react-styles';
+import tabStyles from '@patternfly/react-styles/css/components/Tabs/tabs.mjs';
+import tabContentStyles from '@patternfly/react-styles/css/components/TabContent/tab-content.mjs';
 import {
     Table,
     Tbody,
@@ -44,13 +47,36 @@ import {
 } from '@patternfly/react-table';
 import {
     ArrowUpIcon,
-    CaretDownIcon,
     CheckCircleIcon,
     CheckIcon,
     EllipsisVIcon,
     SearchIcon,
 } from '@patternfly/react-icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+const spacingL = 'var(--pf-v5-global--spacer--l, var(--pf-global--spacer--lg, 24px))';
+const spacingMd = 'var(--pf-v5-global--spacer--md, var(--pf-global--spacer--md, 16px))';
+const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global--BackgroundColor--100, #fff))';
+
+const PRIMARY_TAB_IDS = {
+    overview: 'powerpuff-primary-tab-overview',
+    details: 'powerpuff-primary-tab-details',
+    content: 'powerpuff-primary-tab-content',
+    parameters: 'powerpuff-primary-tab-parameters',
+    traces: 'powerpuff-primary-tab-traces',
+    lightspeed: 'powerpuff-primary-tab-lightspeed',
+} as const;
+
+const PRIMARY_PANEL_IDS = {
+    overview: 'powerpuff-primary-panel-overview',
+    details: 'powerpuff-primary-panel-details',
+    content: 'powerpuff-primary-panel-content',
+    parameters: 'powerpuff-primary-panel-parameters',
+    traces: 'powerpuff-primary-panel-traces',
+    lightspeed: 'powerpuff-primary-panel-lightspeed',
+} as const;
+
+type PrimaryTabKey = keyof typeof PRIMARY_TAB_IDS;
 
 // Mock data for packages
 const mockPackages = [
@@ -98,21 +124,16 @@ const mockPackages = [
 
 const PowerPuffGirl: React.FunctionComponent = () => {
     const navigate = useNavigate();
-    const [primaryActiveTabKey, setPrimaryActiveTabKey] = React.useState<string>('content');
+    const [primaryActiveTabKey, setPrimaryActiveTabKey] = React.useState<PrimaryTabKey>('content');
     const [secondaryActiveTabKey, setSecondaryActiveTabKey] = React.useState<string>('packages');
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
     const [statusFilter, setStatusFilter] = React.useState('All status');
     const [searchValue, setSearchValue] = React.useState('');
     const [selectedPackages, setSelectedPackages] = React.useState<Set<number>>(new Set());
-    const [isBulkSelectDropdownOpen, setIsBulkSelectDropdownOpen] = React.useState(false);
     const [isActionsKebabOpen, setIsActionsKebabOpen] = React.useState(false);
     const [openRowKebabs, setOpenRowKebabs] = React.useState<Set<number>>(new Set());
     const [isLoading] = React.useState(false);
     const [showAlert, setShowAlert] = React.useState(true);
-
-    const handlePrimaryTabClick = (event: React.MouseEvent | React.KeyboardEvent | MouseEvent, tabIndex: string | number) => {
-        setPrimaryActiveTabKey(tabIndex as string);
-    };
 
     const handleSecondaryTabClick = (event: React.MouseEvent | React.KeyboardEvent | MouseEvent, tabIndex: string | number) => {
         setSecondaryActiveTabKey(tabIndex as string);
@@ -125,18 +146,6 @@ const PowerPuffGirl: React.FunctionComponent = () => {
     const onStatusSelect = (event: React.MouseEvent | undefined, value: string | number | undefined) => {
         setStatusFilter(value as string);
         setIsStatusDropdownOpen(false);
-    };
-
-    const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>, value: string) => {
-        setSearchValue(value);
-    };
-
-    const handleSelectAll = (isSelected: boolean) => {
-        if (isSelected) {
-            setSelectedPackages(new Set(filteredPackages.map(pkg => pkg.id)));
-        } else {
-            setSelectedPackages(new Set());
-        }
     };
 
     const handleRowSelect = (pkgId: number, isSelected: boolean) => {
@@ -177,6 +186,47 @@ const PowerPuffGirl: React.FunctionComponent = () => {
         return matchesSearch && matchesStatus;
     });
 
+    const idsOnPage = filteredPackages.map((p) => p.id);
+    const allOnPageSelected = idsOnPage.length > 0 && idsOnPage.every((id) => selectedPackages.has(id));
+    const partiallySelectedPage =
+        idsOnPage.some((id) => selectedPackages.has(id)) && !allOnPageSelected;
+
+    const clearSelection = () => setSelectedPackages(new Set());
+    const selectAllFiltered = () => setSelectedPackages(new Set(filteredPackages.map((p) => p.id)));
+    const selectPageIds = () => {
+        setSelectedPackages((prev) => {
+            const next = new Set(prev);
+            idsOnPage.forEach((id) => next.add(id));
+            return next;
+        });
+    };
+    const clearPageSelection = () => {
+        setSelectedPackages((prev) => {
+            const next = new Set(prev);
+            idsOnPage.forEach((id) => next.delete(id));
+            return next;
+        });
+    };
+
+    const onBulkSelect = (value: (typeof BulkSelectValue)[keyof typeof BulkSelectValue]) => {
+        switch (value) {
+            case BulkSelectValue.none:
+                clearSelection();
+                break;
+            case BulkSelectValue.all:
+                selectAllFiltered();
+                break;
+            case BulkSelectValue.page:
+                selectPageIds();
+                break;
+            case BulkSelectValue.nonePage:
+                clearPageSelection();
+                break;
+            default:
+                break;
+        }
+    };
+
     const handleAddToContainerfile = (packageIds?: Set<number>) => {
         const idsToUse = packageIds || selectedPackages;
         // Filter to only transient packages
@@ -191,9 +241,6 @@ const PowerPuffGirl: React.FunctionComponent = () => {
             });
         }
     };
-
-    const isAllSelected = selectedPackages.size === filteredPackages.length && filteredPackages.length > 0;
-    const isPartiallySelected = selectedPackages.size > 0 && selectedPackages.size < filteredPackages.length;
 
     // Check if any selected packages are upgradable
     const hasUpgradableSelected = Array.from(selectedPackages).some(id => {
@@ -215,99 +262,52 @@ const PowerPuffGirl: React.FunctionComponent = () => {
                 </Alert>
             )}
             <div style={{ marginTop: showAlert ? '0' : '24px' }}>
-                <Toolbar id="packages-toolbar">
-                    <ToolbarContent>
-                        <ToolbarItem>
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                border: '1px solid var(--pf-global--BorderColor--100)',
-                                borderRadius: 'var(--pf-global--BorderRadius--sm)',
-                                padding: '4px 8px',
-                                backgroundColor: 'var(--pf-global--BackgroundColor--100)'
-                            }}>
-                                <Checkbox
-                                    isChecked={isAllSelected ? true : isPartiallySelected ? null : false}
-                                    onChange={(event, checked) => handleSelectAll(checked)}
-                                    aria-label="Select all packages"
-                                    id="select-all-packages"
-                                    name="select-all-packages"
-                                />
-                                {selectedPackages.size > 0 && (
-                                    <span style={{ marginLeft: '8px', fontSize: 'var(--pf-global--FontSize--sm)', color: 'var(--pf-global--Color--200)' }}>
-                                        {selectedPackages.size} selected
-                                    </span>
-                                )}
-                                <Dropdown
-                                    isOpen={isBulkSelectDropdownOpen}
-                                    onOpenChange={setIsBulkSelectDropdownOpen}
-                                    toggle={(toggleRef) => (
-                                        <MenuToggle
-                                            ref={toggleRef}
-                                            onClick={() => setIsBulkSelectDropdownOpen(!isBulkSelectDropdownOpen)}
-                                            isExpanded={isBulkSelectDropdownOpen}
-                                            variant="plain"
-                                            aria-label="Bulk selection options"
-                                            style={{ marginLeft: '4px' }}
-                                        >
-                                            <CaretDownIcon />
-                                        </MenuToggle>
-                                    )}
-                                    popperProps={{ appendTo: () => document.body }}
-                                >
-                                    <DropdownList>
-                                        <DropdownItem key="select-all" onClick={() => {
-                                            handleSelectAll(true);
-                                            setIsBulkSelectDropdownOpen(false);
-                                        }}>
-                                            Select all
-                                        </DropdownItem>
-                                        <DropdownItem key="select-none" onClick={() => {
-                                            handleSelectAll(false);
-                                            setIsBulkSelectDropdownOpen(false);
-                                        }}>
-                                            Select none
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            key="select-upgradable"
-                                            onClick={() => {
-                                                const upgradableIds = mockPackages
-                                                    .filter(pkg => pkg.status === 'Upgradable')
-                                                    .map(pkg => pkg.id);
-                                                setSelectedPackages(new Set(upgradableIds));
-                                                setIsBulkSelectDropdownOpen(false);
-                                            }}
-                                        >
-                                            Select upgradable
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            key="select-transient"
-                                            onClick={() => {
-                                                const transientIds = mockPackages
-                                                    .filter(pkg => pkg.persistence === 'Transient')
-                                                    .map(pkg => pkg.id);
-                                                setSelectedPackages(new Set(transientIds));
-                                                setIsBulkSelectDropdownOpen(false);
-                                            }}
-                                        >
-                                            Select transient
-                                        </DropdownItem>
-                                    </DropdownList>
-                                </Dropdown>
-                            </div>
-                        </ToolbarItem>
-                        <ToolbarGroup>
+                <Toolbar
+                    id="packages-toolbar"
+                    ouiaId="powerpuff-packages-toolbar"
+                    inset={{ default: 'insetNone' }}
+                    style={{ marginBottom: 0 }}
+                >
+                    <ToolbarContent alignItems="center">
+                        <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
                             <ToolbarItem>
-                                <TextInput
-                                    name="search-packages"
-                                    id="search-packages"
-                                    type="search"
-                                    aria-label="Search packages"
-                                    placeholder="Search packages..."
-                                    value={searchValue}
-                                    onChange={onSearchInputChange}
+                                <BulkSelect
+                                    ouiaId="powerpuff-packages-bulk-select"
+                                    isDataPaginated
+                                    canSelectAll
+                                    pageCount={idsOnPage.length}
+                                    selectedCount={selectedPackages.size}
+                                    totalCount={filteredPackages.length}
+                                    pageSelected={allOnPageSelected}
+                                    pagePartiallySelected={partiallySelectedPage}
+                                    onSelect={onBulkSelect}
+                                    popperProps={{ appendTo: () => document.body }}
+                                    menuToggleCheckboxProps={{
+                                        id: 'powerpuff-packages-bulk-checkbox',
+                                        'aria-label':
+                                            selectedPackages.size > 0
+                                                ? `Select rows, ${selectedPackages.size} of ${filteredPackages.length} selected`
+                                                : 'Select rows',
+                                    }}
                                 />
                             </ToolbarItem>
+                        </ToolbarGroup>
+
+                        <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
+                            <ToolbarItem style={{ flex: '0 0 auto', width: 320, maxWidth: 'min(480px, 100%)' }}>
+                                <SearchInput
+                                    name="search-packages"
+                                    id="search-packages"
+                                    aria-label="Search packages"
+                                    placeholder="Search packages by name or status…"
+                                    value={searchValue}
+                                    onChange={(_event, value) => setSearchValue(value)}
+                                    onClear={() => setSearchValue('')}
+                                />
+                            </ToolbarItem>
+                        </ToolbarGroup>
+
+                        <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsSm' }}>
                             <ToolbarItem>
                                 <Select
                                     isOpen={isStatusDropdownOpen}
@@ -331,8 +331,6 @@ const PowerPuffGirl: React.FunctionComponent = () => {
                                     </SelectList>
                                 </Select>
                             </ToolbarItem>
-                        </ToolbarGroup>
-                        <ToolbarGroup>
                             <ToolbarItem>
                                 <Button
                                     variant="primary"
@@ -362,8 +360,8 @@ const PowerPuffGirl: React.FunctionComponent = () => {
                                     <DropdownList>
                                         <DropdownItem
                                             key="add-to-containerfile"
-                                            isDisabled={!Array.from(selectedPackages).some(id => {
-                                                const pkg = mockPackages.find(p => p.id === id);
+                                            isDisabled={!Array.from(selectedPackages).some((id) => {
+                                                const pkg = mockPackages.find((p) => p.id === id);
                                                 return pkg?.persistence === 'Transient';
                                             })}
                                             description="Transient packages only"
@@ -396,7 +394,7 @@ const PowerPuffGirl: React.FunctionComponent = () => {
                         </EmptyStateBody>
                     </EmptyState>
                 ) : (
-                    <Table variant="compact">
+                    <Table variant="compact" isStriped>
                         <Thead>
                             <Tr>
                                 <Th></Th>
@@ -568,128 +566,220 @@ const PowerPuffGirl: React.FunctionComponent = () => {
         </Tabs>
     );
 
-    const contentTabContent = (
-        <div>
-            {secondaryTabsContent}
-        </div>
+    const primaryTabButton = (tabKey: PrimaryTabKey, label: string) => (
+        <li
+            className={css(
+                tabStyles.tabsItem,
+                primaryActiveTabKey === tabKey && tabStyles.modifiers.current,
+            )}
+            role="presentation"
+            key={tabKey}
+        >
+            <button
+                type="button"
+                id={PRIMARY_TAB_IDS[tabKey]}
+                className={css(tabStyles.tabsLink)}
+                role="tab"
+                aria-selected={primaryActiveTabKey === tabKey}
+                aria-controls={PRIMARY_PANEL_IDS[tabKey]}
+                tabIndex={primaryActiveTabKey === tabKey ? 0 : -1}
+                onClick={() => setPrimaryActiveTabKey(tabKey)}
+            >
+                <span className={css(tabStyles.tabsItemText)}>{label}</span>
+            </button>
+        </li>
     );
 
     return (
-        <PageSection style={{ backgroundColor: 'white' }}>
-            <Stack hasGutter>
+        <PageSection padding={{ default: 'noPadding' }} style={{ backgroundColor: background100 }}>
+            <div
+                style={{
+                    paddingTop: spacingMd,
+                    paddingRight: spacingL,
+                    paddingBottom: 0,
+                    paddingLeft: spacingL,
+                    boxSizing: 'border-box',
+                }}
+            >
+                <Breadcrumb>
+                    <BreadcrumbItem
+                        to="/"
+                        render={({ className, ariaCurrent }) => (
+                            <Link className={className} to="/" aria-current={ariaCurrent}>
+                                Dashboard
+                            </Link>
+                        )}
+                    />
+                    <BreadcrumbItem isActive>PowerPuffGirl3.0-Everythingnice.com</BreadcrumbItem>
+                </Breadcrumb>
+            </div>
+
+            <div
+                style={{
+                    paddingTop: spacingMd,
+                    paddingRight: spacingL,
+                    paddingBottom: spacingMd,
+                    paddingLeft: spacingL,
+                    boxSizing: 'border-box',
+                }}
+            >
                 <div>
-                    <Split hasGutter>
-                        <SplitItem>
-                            <Title headingLevel="h1" size="lg">PowerPuffGirl3.0-Everythingnice.com</Title>
-                        </SplitItem>
-                        <SplitItem>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            columnGap: 'var(--pf-v5-global--spacer--sm, 8px)',
+                        }}
+                    >
+                        <Title headingLevel="h1" size="2xl" style={{ margin: 0 }}>
+                            PowerPuffGirl3.0-Everythingnice.com
+                        </Title>
+                        <span
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                lineHeight: 1,
+                            }}
+                            aria-hidden
+                        >
                             <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
-                        </SplitItem>
-                    </Split>
-                    <Text component="p" style={{ color: 'var(--pf-global--Color--200)' }}>
+                        </span>
+                    </div>
+                    <Text component="p" style={{ color: 'var(--pf-global--Color--200)', marginTop: spacingMd }}>
                         Created 3 months ago by Mr.MojoJ (updated 1 minute ago)
                     </Text>
                 </div>
+            </div>
 
-                <Tabs
-                    activeKey={primaryActiveTabKey}
-                    onSelect={handlePrimaryTabClick}
-                    aria-label="Primary tabs"
-                    role="region"
+            <div
+                style={{
+                    paddingTop: 0,
+                    paddingRight: spacingL,
+                    paddingLeft: spacingL,
+                    boxSizing: 'border-box',
+                }}
+            >
+                <div className={css(tabStyles.tabs)} aria-label="Host primary tabs">
+                    <ul className={css(tabStyles.tabsList)} role="tablist">
+                        {primaryTabButton('overview', 'Overview')}
+                        {primaryTabButton('details', 'Details')}
+                        {primaryTabButton('content', 'Content')}
+                        {primaryTabButton('parameters', 'Parameters')}
+                        {primaryTabButton('traces', 'Traces')}
+                        {primaryTabButton('lightspeed', 'Red Hat Lightspeed')}
+                    </ul>
+                </div>
+            </div>
+
+            <div style={{ paddingBottom: spacingL, boxSizing: 'border-box' }}>
+                <section
+                    id={PRIMARY_PANEL_IDS.overview}
+                    role="tabpanel"
+                    aria-labelledby={PRIMARY_TAB_IDS.overview}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ paddingLeft: spacingL, paddingRight: spacingL }}
+                    hidden={primaryActiveTabKey !== 'overview'}
+                    tabIndex={0}
                 >
-                    <Tab
-                        eventKey="overview"
-                        title={<TabTitleText>Overview</TabTitleText>}
-                        aria-label="Overview tab"
-                    >
-                        <TabContent eventKey="overview" id="overview-content">
-                            <TabContentBody>
-                                <Card>
-                                    <CardBody>
-                                        <Title headingLevel="h3" size="md">System Overview</Title>
-                                        <Text>System overview information would be displayed here.</Text>
-                                    </CardBody>
-                                </Card>
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                    <Tab
-                        eventKey="details"
-                        title={<TabTitleText>Details</TabTitleText>}
-                        aria-label="Details tab"
-                    >
-                        <TabContent eventKey="details" id="details-content">
-                            <TabContentBody>
-                                <Card>
-                                    <CardBody>
-                                        <Title headingLevel="h3" size="md">System Details</Title>
-                                        <Text>Detailed system information would be displayed here.</Text>
-                                    </CardBody>
-                                </Card>
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                    <Tab
-                        eventKey="content"
-                        title={<TabTitleText>Content</TabTitleText>}
-                        aria-label="Content tab"
-                    >
-                        <TabContent eventKey="content" id="content-content">
-                            <TabContentBody>
-                                {contentTabContent}
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                    <Tab
-                        eventKey="parameters"
-                        title={<TabTitleText>Parameters</TabTitleText>}
-                        aria-label="Parameters tab"
-                    >
-                        <TabContent eventKey="parameters" id="parameters-content">
-                            <TabContentBody>
-                                <Card>
-                                    <CardBody>
-                                        <Title headingLevel="h3" size="md">System Parameters</Title>
-                                        <Text>System parameters and configuration would be displayed here.</Text>
-                                    </CardBody>
-                                </Card>
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                    <Tab
-                        eventKey="traces"
-                        title={<TabTitleText>Traces</TabTitleText>}
-                        aria-label="Traces tab"
-                    >
-                        <TabContent eventKey="traces" id="traces-content">
-                            <TabContentBody>
-                                <Card>
-                                    <CardBody>
-                                        <Title headingLevel="h3" size="md">System Traces</Title>
-                                        <Text>System trace information would be displayed here.</Text>
-                                    </CardBody>
-                                </Card>
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                    <Tab
-                        eventKey="lightspeed"
-                        title={<TabTitleText>Red Hat Lightspeed</TabTitleText>}
-                        aria-label="Red Hat Lightspeed tab"
-                    >
-                        <TabContent eventKey="lightspeed" id="lightspeed-content">
-                            <TabContentBody>
-                                <Card>
-                                    <CardBody>
-                                        <Title headingLevel="h3" size="md">Red Hat Lightspeed</Title>
-                                        <Text>Red Hat Lightspeed integration and features would be displayed here.</Text>
-                                    </CardBody>
-                                </Card>
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                </Tabs>
-            </Stack>
+                    <Card>
+                        <CardBody>
+                            <Title headingLevel="h3" size="md">
+                                System Overview
+                            </Title>
+                            <Text>System overview information would be displayed here.</Text>
+                        </CardBody>
+                    </Card>
+                </section>
+
+                <section
+                    id={PRIMARY_PANEL_IDS.details}
+                    role="tabpanel"
+                    aria-labelledby={PRIMARY_TAB_IDS.details}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ paddingLeft: spacingL, paddingRight: spacingL }}
+                    hidden={primaryActiveTabKey !== 'details'}
+                    tabIndex={0}
+                >
+                    <Card>
+                        <CardBody>
+                            <Title headingLevel="h3" size="md">
+                                System Details
+                            </Title>
+                            <Text>Detailed system information would be displayed here.</Text>
+                        </CardBody>
+                    </Card>
+                </section>
+
+                <section
+                    id={PRIMARY_PANEL_IDS.content}
+                    role="tabpanel"
+                    aria-labelledby={PRIMARY_TAB_IDS.content}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ padding: 0 }}
+                    hidden={primaryActiveTabKey !== 'content'}
+                    tabIndex={0}
+                >
+                    {secondaryTabsContent}
+                </section>
+
+                <section
+                    id={PRIMARY_PANEL_IDS.parameters}
+                    role="tabpanel"
+                    aria-labelledby={PRIMARY_TAB_IDS.parameters}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ paddingLeft: spacingL, paddingRight: spacingL }}
+                    hidden={primaryActiveTabKey !== 'parameters'}
+                    tabIndex={0}
+                >
+                    <Card>
+                        <CardBody>
+                            <Title headingLevel="h3" size="md">
+                                System Parameters
+                            </Title>
+                            <Text>System parameters and configuration would be displayed here.</Text>
+                        </CardBody>
+                    </Card>
+                </section>
+
+                <section
+                    id={PRIMARY_PANEL_IDS.traces}
+                    role="tabpanel"
+                    aria-labelledby={PRIMARY_TAB_IDS.traces}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ paddingLeft: spacingL, paddingRight: spacingL }}
+                    hidden={primaryActiveTabKey !== 'traces'}
+                    tabIndex={0}
+                >
+                    <Card>
+                        <CardBody>
+                            <Title headingLevel="h3" size="md">
+                                System Traces
+                            </Title>
+                            <Text>System trace information would be displayed here.</Text>
+                        </CardBody>
+                    </Card>
+                </section>
+
+                <section
+                    id={PRIMARY_PANEL_IDS.lightspeed}
+                    role="tabpanel"
+                    aria-labelledby={PRIMARY_TAB_IDS.lightspeed}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ paddingLeft: spacingL, paddingRight: spacingL }}
+                    hidden={primaryActiveTabKey !== 'lightspeed'}
+                    tabIndex={0}
+                >
+                    <Card>
+                        <CardBody>
+                            <Title headingLevel="h3" size="md">
+                                Red Hat Lightspeed
+                            </Title>
+                            <Text>Red Hat Lightspeed integration and features would be displayed here.</Text>
+                        </CardBody>
+                    </Card>
+                </section>
+            </div>
         </PageSection>
     );
 };

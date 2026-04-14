@@ -53,9 +53,9 @@ const routes: AppRouteConfig[] = [
   {
     element: <ContentTypes />,
     exact: true,
-    label: 'Content types',
+    label: 'Content Types',
     path: '/content-types',
-    title: 'PatternFly Seed | Content types',
+    title: 'PatternFly Seed | Content Types',
   },
   {
     element: <ErrataIndex />,

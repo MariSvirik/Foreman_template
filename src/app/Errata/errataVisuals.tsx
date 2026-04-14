@@ -18,6 +18,13 @@ const nowrapRow: React.CSSProperties = {
   minWidth: 0,
 };
 
+/** Match advisory / severity column icon scale (EnhancementIcon defaults smaller in some builds). */
+const typeAdvisoryIconStyle: React.CSSProperties = {
+  width: 'var(--pf-v5-global--icon--FontSize--md, 1.125rem)',
+  height: 'var(--pf-v5-global--icon--FontSize--md, 1.125rem)',
+  flexShrink: 0,
+};
+
 /**
  * Advisory prefix drives type label (RHSA/RHBA/RHEA), matching Red Hat errata conventions.
  */
@@ -30,7 +37,7 @@ export function ErrataTypeIconLabel({ row }: { row: Pick<ErrataRow, 'errataId' |
         spaceItems={{ default: 'spaceItemsSm' }}
         style={nowrapRow}
       >
-        <SecurityIcon />
+        <SecurityIcon style={typeAdvisoryIconStyle} />
         <span>Security</span>
       </Flex>
     );
@@ -42,7 +49,7 @@ export function ErrataTypeIconLabel({ row }: { row: Pick<ErrataRow, 'errataId' |
         spaceItems={{ default: 'spaceItemsSm' }}
         style={nowrapRow}
       >
-        <BugIcon />
+        <BugIcon style={typeAdvisoryIconStyle} />
         <span>Bugfix</span>
       </Flex>
     );
@@ -54,7 +61,7 @@ export function ErrataTypeIconLabel({ row }: { row: Pick<ErrataRow, 'errataId' |
         spaceItems={{ default: 'spaceItemsSm' }}
         style={nowrapRow}
       >
-        <EnhancementIcon />
+        <EnhancementIcon style={typeAdvisoryIconStyle} />
         <span>Enhancement</span>
       </Flex>
     );
@@ -65,7 +72,7 @@ export function ErrataTypeIconLabel({ row }: { row: Pick<ErrataRow, 'errataId' |
       spaceItems={{ default: 'spaceItemsSm' }}
       style={nowrapRow}
     >
-      <SecurityIcon />
+      <SecurityIcon style={typeAdvisoryIconStyle} />
       <span>Security</span>
     </Flex>
   ) : (
@@ -74,23 +81,54 @@ export function ErrataTypeIconLabel({ row }: { row: Pick<ErrataRow, 'errataId' |
       spaceItems={{ default: 'spaceItemsSm' }}
       style={nowrapRow}
     >
-      <BugIcon />
+      <BugIcon style={typeAdvisoryIconStyle} />
       <span>Bugfix</span>
     </Flex>
   );
 }
 
-/** PatternFly severity icons + label on one line. */
+/** Reference UI: colored icons only; labels stay black. */
+const labelBlack = 'var(--pf-v5-global--Color--100, #151515)';
+
+/** Icon-only tints (Lightspeed / console reference). */
+function severityIconColor(severityLabel: string): string {
+  const u = severityLabel.toLowerCase();
+  if (u === 'none' || u === 'n/a') {
+    return '#2b9af3';
+  }
+  switch (severityLabel) {
+    case 'Critical':
+      return '#a30000';
+    case 'Important':
+      return '#c4610a';
+    case 'Moderate':
+      return '#f0ab00';
+    case 'Minor':
+      return '#0066cc';
+    default:
+      return labelBlack;
+  }
+}
+
+const severityIconDimensions: React.CSSProperties = {
+  width: 'var(--pf-v5-global--icon--FontSize--md, 1.125rem)',
+  height: 'var(--pf-v5-global--icon--FontSize--md, 1.125rem)',
+  flexShrink: 0,
+};
+
+/** PatternFly severity icons + label — icon colored, text black. */
 export function ErrataSeverityIconLabel({ severityLabel }: { severityLabel: string }) {
   const u = severityLabel.toLowerCase();
+  const iconColor = severityIconColor(severityLabel);
+  const rowStyle: React.CSSProperties = { ...nowrapRow, color: labelBlack };
   if (u === 'none' || u === 'n/a') {
     return (
       <Flex
         alignItems={{ default: 'alignItemsCenter' }}
         spaceItems={{ default: 'spaceItemsSm' }}
-        style={nowrapRow}
+        style={rowStyle}
       >
-        <SeverityNoneIcon />
+        <SeverityNoneIcon style={{ ...severityIconDimensions, color: iconColor }} />
         <span>None</span>
       </Flex>
     );
@@ -101,9 +139,9 @@ export function ErrataSeverityIconLabel({ severityLabel }: { severityLabel: stri
         <Flex
           alignItems={{ default: 'alignItemsCenter' }}
           spaceItems={{ default: 'spaceItemsSm' }}
-          style={nowrapRow}
+          style={rowStyle}
         >
-          <SeverityCriticalIcon />
+          <SeverityCriticalIcon style={{ ...severityIconDimensions, color: iconColor }} />
           <span>Critical</span>
         </Flex>
       );
@@ -112,9 +150,9 @@ export function ErrataSeverityIconLabel({ severityLabel }: { severityLabel: stri
         <Flex
           alignItems={{ default: 'alignItemsCenter' }}
           spaceItems={{ default: 'spaceItemsSm' }}
-          style={nowrapRow}
+          style={rowStyle}
         >
-          <SeverityImportantIcon />
+          <SeverityImportantIcon style={{ ...severityIconDimensions, color: iconColor }} />
           <span>Important</span>
         </Flex>
       );
@@ -123,9 +161,9 @@ export function ErrataSeverityIconLabel({ severityLabel }: { severityLabel: stri
         <Flex
           alignItems={{ default: 'alignItemsCenter' }}
           spaceItems={{ default: 'spaceItemsSm' }}
-          style={nowrapRow}
+          style={rowStyle}
         >
-          <SeverityModerateIcon />
+          <SeverityModerateIcon style={{ ...severityIconDimensions, color: iconColor }} />
           <span>Moderate</span>
         </Flex>
       );
@@ -134,9 +172,9 @@ export function ErrataSeverityIconLabel({ severityLabel }: { severityLabel: stri
         <Flex
           alignItems={{ default: 'alignItemsCenter' }}
           spaceItems={{ default: 'spaceItemsSm' }}
-          style={nowrapRow}
+          style={rowStyle}
         >
-          <SeverityMinorIcon />
+          <SeverityMinorIcon style={{ ...severityIconDimensions, color: iconColor }} />
           <span>Minor</span>
         </Flex>
       );

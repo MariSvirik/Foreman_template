@@ -265,7 +265,7 @@ const ActivationKeys: React.FunctionComponent = () => {
                                                         />
                                                     </FlexItem>
                                                 </Flex>
-                                                <Table variant="compact">
+                                                <Table variant="compact" isStriped>
                                                     <Thead>
                                                         <Tr>
                                                             <Th>Host groups</Th>
@@ -326,7 +326,7 @@ const ActivationKeys: React.FunctionComponent = () => {
                                         />
                                     </FlexItem>
                                 </Flex>
-                                <Table variant="compact">
+                                <Table variant="compact" isStriped>
                                     <Thead>
                                         <Tr>
                                             <Th>Repository Name</Th>

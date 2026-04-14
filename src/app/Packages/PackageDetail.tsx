@@ -187,7 +187,7 @@ const PackageDetail: React.FunctionComponent = () => {
 
   const filesTable = (
     <div style={tablePadded}>
-      <Table aria-label="Package files" variant="compact" borders ouiaId="package-detail-files-table">
+      <Table aria-label="Package files" variant="compact" borders isStriped ouiaId="package-detail-files-table">
         <Thead>
           <Tr>
             <Th>Path</Th>
@@ -214,6 +214,7 @@ const PackageDetail: React.FunctionComponent = () => {
         aria-label="Package dependencies"
         variant="compact"
         borders
+        isStriped
         ouiaId="package-detail-dependencies-table"
       >
         <Thead>
@@ -240,6 +241,7 @@ const PackageDetail: React.FunctionComponent = () => {
         aria-label="Package repositories"
         variant="compact"
         borders
+        isStriped
         ouiaId="package-detail-repositories-table"
       >
         <Thead>
@@ -390,6 +392,14 @@ const PackageDetail: React.FunctionComponent = () => {
         }}
       >
         <Breadcrumb>
+          <BreadcrumbItem
+            to="/content-types"
+            render={({ className, ariaCurrent }) => (
+              <Link className={className} to="/content-types" aria-current={ariaCurrent}>
+                Content Types
+              </Link>
+            )}
+          />
           <BreadcrumbItem
             to="/packages"
             render={({ className, ariaCurrent }) => (

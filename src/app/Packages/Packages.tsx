@@ -3,13 +3,18 @@ import {
   Button,
   Level,
   LevelItem,
+  Menu,
+  MenuContainer,
+  MenuContent,
+  MenuItem,
+  MenuList,
+  MenuSearch,
+  MenuSearchInput,
   MenuToggle,
   PageSection,
   SearchInput,
-  Select,
-  SelectList,
-  SelectOption,
   TextContent,
+  TextInput,
   Title,
   ToggleGroup,
   ToggleGroupItem,
@@ -19,6 +24,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
+import { ContentTypesBreadcrumb } from '@app/components/ContentTypesBreadcrumb';
 import { MOCK_PACKAGES } from '@app/Packages/packageData';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +45,17 @@ const Packages: React.FunctionComponent = () => {
 
   const [repository, setRepository] = React.useState<string>(REPOSITORY_OPTIONS[0]);
   const [repoOpen, setRepoOpen] = React.useState(false);
+  const [repoFilter, setRepoFilter] = React.useState('');
+  const repoMenuRef = React.useRef<HTMLDivElement>(null);
+  const repoToggleRef = React.useRef<HTMLButtonElement>(null);
+
+  const filteredRepoOptions = React.useMemo(() => {
+    const q = repoFilter.trim().toLowerCase();
+    if (!q) {
+      return [...REPOSITORY_OPTIONS];
+    }
+    return REPOSITORY_OPTIONS.filter((opt) => opt.toLowerCase().includes(q));
+  }, [repoFilter]);
   const [searchDraft, setSearchDraft] = React.useState('');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filterApplicable, setFilterApplicable] = React.useState(false);
@@ -79,6 +96,7 @@ const Packages: React.FunctionComponent = () => {
           boxSizing: 'border-box',
         }}
       >
+        <ContentTypesBreadcrumb currentPageLabel="Packages" />
         <Level hasGutter>
           <LevelItem>
             <TextContent>
@@ -107,35 +125,70 @@ const Packages: React.FunctionComponent = () => {
           <ToolbarContent>
             <ToolbarGroup alignItems="center">
               <ToolbarItem>
-                <Select
-                  isOpen={repoOpen}
-                  selected={repository}
-                  onSelect={(_e, value) => {
-                    if (typeof value === 'string') {
-                      setRepository(value);
-                    }
-                    setRepoOpen(false);
-                  }}
-                  onOpenChange={setRepoOpen}
-                  toggle={(toggleRef) => (
+                <MenuContainer
+                  menu={
+                    <Menu
+                      ref={repoMenuRef}
+                      isPlain
+                      role="listbox"
+                      onSelect={(_e, itemId) => {
+                        if (itemId === 'no-results' || typeof itemId !== 'string') {
+                          return;
+                        }
+                        setRepository(itemId);
+                        setRepoOpen(false);
+                        setRepoFilter('');
+                      }}
+                      selected={repository}
+                    >
+                      <MenuSearch>
+                        <MenuSearchInput>
+                          <TextInput
+                            value={repoFilter}
+                            type="search"
+                            onChange={(_e, v) => setRepoFilter(v)}
+                            aria-label="Filter repositories"
+                            placeholder="Search repositories"
+                          />
+                        </MenuSearchInput>
+                      </MenuSearch>
+                      <MenuContent maxMenuHeight="240px">
+                        <MenuList aria-label="Repositories">
+                          {filteredRepoOptions.length === 0 ? (
+                            <MenuItem itemId="no-results" isAriaDisabled>
+                              No results
+                            </MenuItem>
+                          ) : (
+                            filteredRepoOptions.map((opt) => (
+                              <MenuItem key={opt} itemId={opt} isSelected={repository === opt}>
+                                {opt}
+                              </MenuItem>
+                            ))
+                          )}
+                        </MenuList>
+                      </MenuContent>
+                    </Menu>
+                  }
+                  menuRef={repoMenuRef}
+                  toggle={
                     <MenuToggle
-                      ref={toggleRef}
+                      ref={repoToggleRef}
                       onClick={() => setRepoOpen(!repoOpen)}
                       isExpanded={repoOpen}
                       aria-label="Repository filter"
                     >
                       {repository}
                     </MenuToggle>
-                  )}
-                >
-                  <SelectList>
-                    {REPOSITORY_OPTIONS.map((opt) => (
-                      <SelectOption key={opt} value={opt}>
-                        {opt}
-                      </SelectOption>
-                    ))}
-                  </SelectList>
-                </Select>
+                  }
+                  toggleRef={repoToggleRef}
+                  isOpen={repoOpen}
+                  onOpenChange={(open) => {
+                    setRepoOpen(open);
+                    if (!open) {
+                      setRepoFilter('');
+                    }
+                  }}
+                />
               </ToolbarItem>
               <ToolbarItem>
                 <SearchInput
@@ -188,6 +241,7 @@ const Packages: React.FunctionComponent = () => {
           aria-label="Packages"
           variant="compact"
           borders
+          isStriped
           ouiaId="packages-table"
           style={{ marginBottom: 0 }}
         >

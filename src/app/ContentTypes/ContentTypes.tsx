@@ -24,6 +24,10 @@ import { Link } from 'react-router-dom';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 
 const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global--BackgroundColor--100, #fff))';
+/** 8px — space between page title and intro paragraph */
+const titleToDescriptionGap = 'var(--pf-v5-global--spacer--sm, var(--pf-global--spacer--sm, 8px))';
+/** 16px — section spacing (title block bottom / cards block top) */
+const sectionSpacing = 'var(--pf-v5-global--spacer--md, var(--pf-global--spacer--md, 16px))';
 
 type ContentTypeItem = {
   id: string;
@@ -88,25 +92,28 @@ const CONTENT_TYPES: ContentTypeItem[] = [
 ];
 
 const ContentTypes: React.FunctionComponent = () => {
-  useDocumentTitle('PatternFly Seed | Content types');
+  useDocumentTitle('PatternFly Seed | Content Types');
 
   return (
     <PageSection
-      aria-label="Content types"
+      aria-label="Content Types"
       style={{ backgroundColor: background100 }}
     >
-      <Stack hasGutter>
-        <div>
+      <Stack hasGutter={false}>
+        <section
+          aria-label="Title and description"
+          style={{ paddingBottom: sectionSpacing, boxSizing: 'border-box' }}
+        >
           <Title headingLevel="h1" size="2xl">
-            Content types
+            Content Types
           </Title>
-          <Text component="p">
-            Define and control the specific formats of software, metadata, and automation
-            assets—including RPMs, Errata, and Ansible collections—that populate your library and drive
-            your deployment workflows.
+          <Text component="p" style={{ marginTop: titleToDescriptionGap }}>
+            Define and control the specific formats of software, metadata, and automation assets that
+            populate your library and drive your deployment workflows.
           </Text>
-        </div>
+        </section>
 
+        <section aria-label="Content type cards" style={{ paddingTop: sectionSpacing, boxSizing: 'border-box' }}>
         <Grid hasGutter>
           {CONTENT_TYPES.map(({ id, title, description, icon: Icon, to }) => {
             const card = (
@@ -144,6 +151,7 @@ const ContentTypes: React.FunctionComponent = () => {
             );
           })}
         </Grid>
+        </section>
       </Stack>
     </PageSection>
   );

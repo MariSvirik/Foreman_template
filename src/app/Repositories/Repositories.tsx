@@ -10,6 +10,8 @@ import {
     EmptyStateIcon,
     Flex,
     FlexItem,
+    Level,
+    LevelItem,
     MenuToggle,
     MenuToggleCheckbox,
     Modal,
@@ -46,10 +48,14 @@ import {
     CubesIcon,
     EllipsisVIcon,
     FilterIcon,
-    SearchIcon,
     OutlinedQuestionCircleIcon,
+    SearchIcon,
 } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
+
+const spacingL = 'var(--pf-v5-global--spacer--l, var(--pf-global--spacer--lg, 24px))';
+const spacingMd = 'var(--pf-v5-global--spacer--md, var(--pf-global--spacer--md, 16px))';
+const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global--BackgroundColor--100, #fff))';
 
 // Mock data for Red Hat repositories (tree structure)
 const mockRedHatRepositories = [
@@ -269,17 +275,69 @@ const Repositories: React.FunctionComponent = () => {
     const menuToggleCheckmark: boolean | null = isAllSelected ? true : isPartiallySelected ? null : false;
 
     return (
-        <PageSection style={{ backgroundColor: 'white' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: 'var(--pf-global--spacer--md)' }}>
-                <Title headingLevel="h1" size="lg">Products</Title>
-                <Button variant="plain" aria-label="Help" style={{ padding: 0 }}>
-                    <OutlinedQuestionCircleIcon />
-                </Button>
-            </div>
+        <>
+            <PageSection
+                aria-label="Products"
+                padding={{ default: 'noPadding' }}
+                style={{ backgroundColor: background100 }}
+            >
+                <section
+                    aria-label="Title and actions"
+                    style={{
+                        paddingTop: spacingL,
+                        paddingRight: spacingL,
+                        paddingBottom: spacingMd,
+                        paddingLeft: spacingL,
+                        boxSizing: 'border-box',
+                    }}
+                >
+                    <Level hasGutter>
+                        <LevelItem>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    columnGap: 'var(--pf-v5-global--spacer--sm, 8px)',
+                                }}
+                            >
+                                <Title headingLevel="h1" size="2xl" style={{ margin: 0 }}>
+                                    Products
+                                </Title>
+                                <Button
+                                    variant="plain"
+                                    aria-label="Help"
+                                    style={{
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <OutlinedQuestionCircleIcon />
+                                </Button>
+                            </div>
+                        </LevelItem>
+                    </Level>
+                </section>
 
-            <Toolbar id="repositories-toolbar">
-                <ToolbarContent>
-                    <ToolbarGroup>
+                <section
+                    aria-label="Products list"
+                    style={{
+                        paddingTop: 0,
+                        paddingRight: spacingL,
+                        paddingBottom: spacingL,
+                        paddingLeft: spacingL,
+                        boxSizing: 'border-box',
+                    }}
+                >
+                    <Toolbar
+                        id="repositories-toolbar"
+                        ouiaId="repositories-toolbar"
+                        inset={{ default: 'insetNone' }}
+                        style={{ marginBottom: 0 }}
+                    >
+                        <ToolbarContent alignItems="center">
+                            <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
                         <ToolbarItem>
                             <Dropdown
                                 isOpen={isBulkSelectOpen}
@@ -328,7 +386,8 @@ const Repositories: React.FunctionComponent = () => {
                                 </DropdownList>
                             </Dropdown>
                         </ToolbarItem>
-                        <ToolbarGroup variant="filter-group">
+                            </ToolbarGroup>
+                            <ToolbarGroup variant="filter-group" spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsSm' }}>
                             <ToolbarItem>
                                 <Select
                                     isOpen={isFilterDropdownOpen}
@@ -362,6 +421,7 @@ const Repositories: React.FunctionComponent = () => {
                                 />
                             </ToolbarItem>
                         </ToolbarGroup>
+                            <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsMd' }}>
                         <ToolbarItem>
                             <Button variant="primary">Create product</Button>
                         </ToolbarItem>
@@ -413,25 +473,26 @@ const Repositories: React.FunctionComponent = () => {
                                 </DropdownList>
                             </Dropdown>
                         </ToolbarItem>
-                    </ToolbarGroup>
+                            </ToolbarGroup>
+                            <ToolbarGroup align={{ default: 'alignRight' }}>
+                                <ToolbarItem variant="pagination">
+                                    <Pagination
+                                        itemCount={filteredRepositories.length}
+                                        perPage={perPage}
+                                        page={page}
+                                        onSetPage={(_event, pageNumber) => setPage(pageNumber)}
+                                        onPerPageSelect={(_event, perPageOption) => {
+                                            setPerPage(perPageOption);
+                                            setPage(1);
+                                        }}
+                                        variant={PaginationVariant.top}
+                                        isCompact
+                                        ouiaId="repositories-pagination-top"
+                                    />
+                                </ToolbarItem>
+                            </ToolbarGroup>
                 </ToolbarContent>
             </Toolbar>
-
-            {/* Top Pagination */}
-            <div style={{ marginBottom: 'var(--pf-global--spacer--md)' }}>
-                <Pagination
-                    itemCount={filteredRepositories.length}
-                    perPage={perPage}
-                    page={page}
-                    onSetPage={(_event, pageNumber) => setPage(pageNumber)}
-                    onPerPageSelect={(_event, perPageOption) => {
-                        setPerPage(perPageOption);
-                        setPage(1);
-                    }}
-                    variant={PaginationVariant.top}
-                    isCompact
-                />
-            </div>
 
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: 'var(--pf-global--spacer--xl)' }}>
@@ -449,7 +510,7 @@ const Repositories: React.FunctionComponent = () => {
                 </EmptyState>
             ) : (
                 <>
-                    <Table variant="compact">
+                    <Table variant="compact" isStriped>
                         <Thead>
                             <Tr>
                                 <Th></Th>
@@ -488,25 +549,33 @@ const Repositories: React.FunctionComponent = () => {
                         </Tbody>
                     </Table>
 
-                    {/* Bottom Pagination */}
-                    <div style={{ marginTop: 'var(--pf-global--spacer--md)' }}>
-                        <Pagination
-                            itemCount={filteredRepositories.length}
-                            perPage={perPage}
-                            page={page}
-                            onSetPage={(_event, pageNumber) => setPage(pageNumber)}
-                            onPerPageSelect={(_event, perPageOption) => {
-                                setPerPage(perPageOption);
-                                setPage(1);
-                            }}
-                            variant={PaginationVariant.bottom}
-                            isCompact
-                        />
-                    </div>
+                    <Pagination
+                        itemCount={filteredRepositories.length}
+                        perPage={perPage}
+                        page={page}
+                        onSetPage={(_event, pageNumber) => setPage(pageNumber)}
+                        onPerPageSelect={(_event, perPageOption) => {
+                            setPerPage(perPageOption);
+                            setPage(1);
+                        }}
+                        variant={PaginationVariant.bottom}
+                        isCompact
+                        isStatic
+                        ouiaId="repositories-pagination-bottom"
+                        style={{
+                            marginTop: 0,
+                            paddingTop: spacingMd,
+                            paddingBlockStart: spacingMd,
+                            paddingLeft: 0,
+                            paddingRight: 0,
+                            paddingInline: 0,
+                        }}
+                    />
                 </>
             )}
+                </section>
+            </PageSection>
 
-            {/* Red Hat Repositories Modal */}
             <Modal
                 variant={ModalVariant.large}
                 title="Enable Red Hat repositories"
@@ -663,7 +732,7 @@ const Repositories: React.FunctionComponent = () => {
                         isCompact
                     />
                 </div>
-                <Table>
+                <Table isStriped>
                     <Thead>
                         <Tr>
                             <Th></Th>
@@ -770,7 +839,7 @@ const Repositories: React.FunctionComponent = () => {
                     />
                 </div>
             </Modal>
-        </PageSection>
+        </>
     );
 };
 

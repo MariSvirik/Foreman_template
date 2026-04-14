@@ -9,3 +9,18 @@ body,
   --pf-v6-c-content--blockquote--BorderLeftColor: var(--pf-t--global--color--nonstatus--purple--default); /* changes all <blockquote> left border color to the semantic token for non-status (purple) */
   --pf-v6-c-content--hr--BackgroundColor: var(--pf-t--global--color--nonstatus--yellow--default); /* changes a <hr> color to the semantic token for non-status (yellow) */
 }
+
+/* Expand-all in thead: chevron orientation (180° from prior tweak) */
+.app-table-expand-header-caret thead .pf-v5-c-table__toggle .pf-v5-c-button:not(.pf-m-expanded) .pf-v5-c-table__toggle-icon {
+  transform: rotate(180deg);
+}
+.app-table-expand-header-caret thead .pf-v5-c-table__toggle .pf-v5-c-button.pf-m-expanded .pf-v5-c-table__toggle-icon {
+  transform: rotate(270deg);
+}
+
+/* Remove separator line between parent row and expanded detail row */
+.app-table-expand-no-middle-rule
+  .pf-v5-c-table__expandable-row.pf-m-expanded:has(+ .pf-v5-c-table__expandable-row) {
+  border-block-end: none;
+  box-shadow: none;
+}

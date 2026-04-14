@@ -259,6 +259,7 @@ const TemplateDetail: React.FunctionComponent = () => {
         aria-label="Template detail data"
         variant="compact"
         borders
+        isStriped
         ouiaId="template-detail-table"
         style={{ marginBottom: 0 }}
       >
@@ -401,7 +402,7 @@ const TemplateDetail: React.FunctionComponent = () => {
             </TextContent>
           </LevelItem>
           <LevelItem>
-            <Button variant="primary">Edit</Button>
+            <Button variant="secondary">Edit</Button>
           </LevelItem>
         </Level>
       </div>

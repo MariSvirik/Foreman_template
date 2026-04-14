@@ -76,6 +76,34 @@ const mockTableData = [
   { id: 4, name: 'Alice Brown', email: 'alice.brown@example.com', status: 'Pending', lastLogin: 'Never', role: 'User' }
 ];
 
+/** 4px between icons and adjacent text (dashboard-wide, including trend arrows) */
+const dashboardIconTextRowStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  columnGap: '4px',
+};
+
+const dashboardIconWrapStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  lineHeight: 1,
+};
+
+/** 8px between severity label and message in alerts card */
+const dashboardAlertsLabelRowStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  columnGap: '8px',
+};
+
+const sentenceCase = (value: string): string => {
+  if (!value) {
+    return value;
+  }
+  const s = value.trim();
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+};
+
 const Dashboard: React.FunctionComponent = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoading, _setIsLoading] = React.useState(false);
@@ -87,13 +115,15 @@ const Dashboard: React.FunctionComponent = () => {
     else if (status === 'Inactive' || status === 'danger' || status === 'Invalid') color = 'red';
     else if (status === 'Pending' || status === 'info') color = 'blue';
 
-    return <Label color={color}>{status}</Label>;
+    return <Label color={color}>{sentenceCase(status)}</Label>;
   };
 
   const getTrendIcon = (isPositive: boolean) => {
-    return isPositive
-      ? <ArrowUpIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
-      : <ArrowDownIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />;
+    return isPositive ? (
+      <ArrowUpIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
+    ) : (
+      <ArrowDownIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
+    );
   };
 
   if (isLoading) {
@@ -109,7 +139,7 @@ const Dashboard: React.FunctionComponent = () => {
       <Stack hasGutter>
         {/* Header Section */}
         <div>
-          <Title headingLevel="h1" size="lg">PatternFly v5 Dashboard</Title>
+          <Title headingLevel="h1" size="lg">PatternFly v5 dashboard</Title>
           <Text>
             Welcome to your PatternFly v5 dashboard! This demonstrates various PatternFly v5 components and patterns.
           </Text>
@@ -120,16 +150,20 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} md={6} lg={3}>
             <Card isFullHeight>
               <CardTitle>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <SecurityIcon />
+                <div style={dashboardIconTextRowStyle}>
+                  <span style={dashboardIconWrapStyle} aria-hidden>
+                    <SecurityIcon />
+                  </span>
                   <span>Security errata</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
                   <Title headingLevel="h2" size="2xl">{mockErrataMetrics.securityAdvisories.toLocaleString()}</Title>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--xs)' }}>
-                    {getTrendIcon(true)}
+                  <div style={dashboardIconTextRowStyle}>
+                    <span style={dashboardIconWrapStyle} aria-hidden>
+                      {getTrendIcon(true)}
+                    </span>
                     <Text component="small">New advisories this month</Text>
                   </div>
                 </Stack>
@@ -140,16 +174,20 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} md={6} lg={3}>
             <Card isFullHeight>
               <CardTitle>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <ExclamationTriangleIcon />
+                <div style={dashboardIconTextRowStyle}>
+                  <span style={dashboardIconWrapStyle} aria-hidden>
+                    <ExclamationTriangleIcon />
+                  </span>
                   <span>Applicable errata</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
                   <Title headingLevel="h2" size="2xl">{mockErrataMetrics.applicableToHosts.toLocaleString()}</Title>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--xs)' }}>
-                    {getTrendIcon(false)}
+                  <div style={dashboardIconTextRowStyle}>
+                    <span style={dashboardIconWrapStyle} aria-hidden>
+                      {getTrendIcon(false)}
+                    </span>
                     <Text component="small">Across registered content hosts</Text>
                   </div>
                 </Stack>
@@ -160,16 +198,20 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} md={6} lg={3}>
             <Card isFullHeight>
               <CardTitle>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <DollarSignIcon />
+                <div style={dashboardIconTextRowStyle}>
+                  <span style={dashboardIconWrapStyle} aria-hidden>
+                    <DollarSignIcon />
+                  </span>
                   <span>Revenue</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
                   <Title headingLevel="h2" size="2xl">${mockMetrics.revenue.toLocaleString()}</Title>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--xs)' }}>
-                    {getTrendIcon(false)}
+                  <div style={dashboardIconTextRowStyle}>
+                    <span style={dashboardIconWrapStyle} aria-hidden>
+                      {getTrendIcon(false)}
+                    </span>
                     <Text component="small">-3% from last month</Text>
                   </div>
                 </Stack>
@@ -180,9 +222,11 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} md={6} lg={3}>
             <Card isFullHeight>
               <CardTitle>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <PercentageIcon />
-                  <span>Conversion Rate</span>
+                <div style={dashboardIconTextRowStyle}>
+                  <span style={dashboardIconWrapStyle} aria-hidden>
+                    <PercentageIcon />
+                  </span>
+                  <span>Conversion rate</span>
                 </div>
               </CardTitle>
               <CardBody>
@@ -198,15 +242,15 @@ const Dashboard: React.FunctionComponent = () => {
 
         {/* Users Table */}
         <Card>
-          <CardTitle>User Management</CardTitle>
+          <CardTitle>User management</CardTitle>
           <CardBody>
-            <Table variant="compact">
+            <Table variant="compact" isStriped>
               <Thead>
                 <Tr>
                   <Th>Name</Th>
                   <Th>Email</Th>
                   <Th>Status</Th>
-                  <Th>Last Login</Th>
+                  <Th>Last login</Th>
                   <Th>Role</Th>
                   <Th>Actions</Th>
                 </Tr>
@@ -217,7 +261,7 @@ const Dashboard: React.FunctionComponent = () => {
                     <Td dataLabel="Name">{user.name}</Td>
                     <Td dataLabel="Email">{user.email}</Td>
                     <Td dataLabel="Status">{getStatusLabel(user.status)}</Td>
-                    <Td dataLabel="Last Login">{user.lastLogin}</Td>
+                    <Td dataLabel="Last login">{user.lastLogin}</Td>
                     <Td dataLabel="Role">{user.role}</Td>
                     <Td dataLabel="Actions">
                       <ActionGroup>
@@ -240,7 +284,7 @@ const Dashboard: React.FunctionComponent = () => {
         <Grid hasGutter>
           <GridItem span={12} lg={8}>
             <Card isFullHeight>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle>Recent activity</CardTitle>
               <CardBody>
                 <List>
                   {mockRecentActivity.map((activity) => (
@@ -266,7 +310,7 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} lg={4}>
             <Stack hasGutter>
               <Card isFullHeight>
-                <CardTitle>System Information</CardTitle>
+                <CardTitle>System information</CardTitle>
                 <CardBody>
                   <DescriptionList>
                     <DescriptionListGroup>
@@ -282,7 +326,7 @@ const Dashboard: React.FunctionComponent = () => {
                       <DescriptionListDescription>15 days, 3 hours</DescriptionListDescription>
                     </DescriptionListGroup>
                     <DescriptionListGroup>
-                      <DescriptionListTerm>Last Backup</DescriptionListTerm>
+                      <DescriptionListTerm>Last backup</DescriptionListTerm>
                       <DescriptionListDescription>2 hours ago</DescriptionListDescription>
                     </DescriptionListGroup>
                   </DescriptionList>
@@ -290,15 +334,15 @@ const Dashboard: React.FunctionComponent = () => {
               </Card>
 
               <Card>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>Quick actions</CardTitle>
                 <CardBody>
                   <Stack hasGutter>
                     <ActionGroup>
                       <Button variant="primary">
-                        Generate Report
+                        Generate report
                       </Button>
                       <Button variant="secondary">
-                        Export Data
+                        Export data
                       </Button>
                     </ActionGroup>
                     <ActionGroup>
@@ -310,11 +354,12 @@ const Dashboard: React.FunctionComponent = () => {
                         rel="noopener noreferrer"
                         icon={<ExternalLinkAltIcon />}
                         iconPosition="right"
+                        style={{ columnGap: '4px' }}
                       >
-                        PatternFly v5 Documentation
+                        PatternFly v5 documentation
                       </Button>
                       <Button variant="link" isDanger>
-                        Reset Dashboard
+                        Reset dashboard
                       </Button>
                     </ActionGroup>
                   </Stack>
@@ -329,8 +374,10 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} md={4}>
             <Card>
               <CardTitle>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <SecurityIcon />
+                <div style={dashboardIconTextRowStyle}>
+                  <span style={dashboardIconWrapStyle} aria-hidden>
+                    <SecurityIcon />
+                  </span>
                   <span>Errata repositories</span>
                 </div>
               </CardTitle>
@@ -361,23 +408,25 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} md={4}>
             <Card>
               <CardTitle>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <DatabaseIcon />
-                  <span>Performance Metrics</span>
+                <div style={dashboardIconTextRowStyle}>
+                  <span style={dashboardIconWrapStyle} aria-hidden>
+                    <DatabaseIcon />
+                  </span>
+                  <span>Performance metrics</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
                   <div>
-                    <Text component="p">CPU Usage</Text>
+                    <Text component="p">CPU usage</Text>
                     <Progress value={45} measureLocation="outside" />
                   </div>
                   <div>
-                    <Text component="p">Memory Usage</Text>
+                    <Text component="p">Memory usage</Text>
                     <Progress value={67} measureLocation="outside" />
                   </div>
                   <div>
-                    <Text component="p">Disk Usage</Text>
+                    <Text component="p">Disk usage</Text>
                     <Progress value={32} measureLocation="outside" />
                   </div>
                   <div>
@@ -392,22 +441,24 @@ const Dashboard: React.FunctionComponent = () => {
           <GridItem span={12} md={4}>
             <Card>
               <CardTitle>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
-                  <ExclamationTriangleIcon />
-                  <span>Alerts & Notifications</span>
+                <div style={dashboardIconTextRowStyle}>
+                  <span style={dashboardIconWrapStyle} aria-hidden>
+                    <ExclamationTriangleIcon />
+                  </span>
+                  <span>Alerts and notifications</span>
                 </div>
               </CardTitle>
               <CardBody>
                 <Stack hasGutter>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
+                  <div style={dashboardAlertsLabelRowStyle}>
                     <Label color="red">Critical</Label>
                     <Text component="small">High memory usage detected</Text>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
+                  <div style={dashboardAlertsLabelRowStyle}>
                     <Label color="orange">Warning</Label>
                     <Text component="small">SSL certificate expires in 30 days</Text>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-global--spacer--sm)' }}>
+                  <div style={dashboardAlertsLabelRowStyle}>
                     <Label color="blue">Info</Label>
                     <Text component="small">System maintenance scheduled</Text>
                   </div>
@@ -424,16 +475,16 @@ const Dashboard: React.FunctionComponent = () => {
 
         {/* PatternFly Features Showcase */}
         <Card>
-          <CardTitle>PatternFly v5 Features Demonstrated</CardTitle>
+          <CardTitle>PatternFly v5 features demonstrated</CardTitle>
           <CardBody>
             <Grid hasGutter>
               <GridItem span={12} md={6}>
                 <Stack hasGutter>
-                  <Title headingLevel="h3" size="md">Layout Components</Title>
+                  <Title headingLevel="h3" size="md">Layout components</Title>
                   <List>
                     <ListItem>
                       <Text>
-                        <strong>Grid System:</strong> Responsive 12-column grid with gutters
+                        <strong>Grid system:</strong> Responsive 12-column grid with gutters
                       </Text>
                     </ListItem>
                     <ListItem>
@@ -448,7 +499,7 @@ const Dashboard: React.FunctionComponent = () => {
                     </ListItem>
                     <ListItem>
                       <Text>
-                        <strong>PageSection:</strong> Proper page structure with semantic layout
+                        <strong>Page section:</strong> Proper page structure with semantic layout
                       </Text>
                     </ListItem>
                   </List>
@@ -456,7 +507,7 @@ const Dashboard: React.FunctionComponent = () => {
               </GridItem>
               <GridItem span={12} md={6}>
                 <Stack hasGutter>
-                  <Title headingLevel="h3" size="md">Data & Interactive Components</Title>
+                  <Title headingLevel="h3" size="md">Data and interactive components</Title>
                   <List>
                     <ListItem>
                       <Text>
@@ -480,7 +531,7 @@ const Dashboard: React.FunctionComponent = () => {
                     </ListItem>
                     <ListItem>
                       <Text>
-                        <strong>Text & Typography:</strong> Semantic text components with proper hierarchy
+                        <strong>Text and typography:</strong> Semantic text components with proper hierarchy
                       </Text>
                     </ListItem>
                   </List>
@@ -502,7 +553,7 @@ const Dashboard: React.FunctionComponent = () => {
                 <EmptyStateBody>
                   No recent activity to display. Try adjusting your time range or check back later.
                 </EmptyStateBody>
-                <Button variant="primary">Refresh Data</Button>
+                <Button variant="primary">Refresh data</Button>
               </EmptyState>
             </CardBody>
           </Card>

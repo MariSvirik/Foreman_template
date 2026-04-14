@@ -441,7 +441,7 @@ export const RecurringLogic: React.FunctionComponent = () => {
                                 </StackItem>
 
                                 <StackItem>
-                                    <Table variant="compact">
+                                    <Table variant="compact" isStriped>
                                         <Thead>
                                             <Tr>
                                                 <Th width={10}></Th>

@@ -148,8 +148,13 @@ const ErrataDetail: React.FunctionComponent = () => {
   const isRsyncFeatured = advisoryId === 'RHSA-2026:6825' || row?.errataId === 'RHSA-2026:6825';
 
   const displayId = row?.errataId ?? (advisoryId || 'Erratum');
-  const synopsis = row?.synopsis ?? `${row?.severityLabel ?? 'Moderate'}: Errata advisory`;
   const advisoryType = row?.errataType ?? 'security';
+  const isSecurity = advisoryType === 'security';
+  const synopsis =
+    row?.synopsis ??
+    (isSecurity
+      ? `${row?.severityLabel ?? 'Moderate'}: Errata advisory`
+      : 'Bug fix and enhancement update');
   const severityLabel = row?.severityLabel ?? 'Moderate';
 
   useDocumentTitle(`PatternFly Seed | ${displayId}`);
@@ -178,7 +183,9 @@ const ErrataDetail: React.FunctionComponent = () => {
 
   const fullDescription = isRsyncFeatured
     ? `An update for rsync is now available for Red Hat Enterprise Linux. Red Hat Product Security has rated this update as having a security impact of ${severityLabel}. ${RSYNC_LONG.description}`
-    : `An update for this component is now available for Red Hat Enterprise Linux. Red Hat Product Security has rated this update as having a security impact of ${severityLabel}. ${row?.detail ?? synopsis}`;
+    : isSecurity
+      ? `An update for this component is now available for Red Hat Enterprise Linux. Red Hat Product Security has rated this update as having a security impact of ${severityLabel}. ${row?.detail ?? synopsis}`
+      : `An update for this component is now available for Red Hat Enterprise Linux. ${row?.detail ?? synopsis}`;
 
   const teaser = teaserText(fullDescription);
   const hasLongBody = fullDescription.length > TEASER_MAX;
@@ -277,6 +284,7 @@ const ErrataDetail: React.FunctionComponent = () => {
         aria-label="Affected hosts"
         variant="compact"
         borders
+        isStriped
         ouiaId="errata-detail-hosts-table"
         style={{ marginBottom: 0 }}
       >
@@ -308,6 +316,7 @@ const ErrataDetail: React.FunctionComponent = () => {
         aria-label="Repositories"
         variant="compact"
         borders
+        isStriped
         ouiaId="errata-detail-repositories-table"
         style={{ marginBottom: 0 }}
       >
@@ -337,6 +346,7 @@ const ErrataDetail: React.FunctionComponent = () => {
         aria-label="Packages"
         variant="compact"
         borders
+        isStriped
         ouiaId="errata-detail-packages-table"
         style={{ marginBottom: 0 }}
       >
@@ -374,6 +384,14 @@ const ErrataDetail: React.FunctionComponent = () => {
         }}
       >
         <Breadcrumb>
+          <BreadcrumbItem
+            to="/content-types"
+            render={({ className, ariaCurrent }) => (
+              <Link className={className} to="/content-types" aria-current={ariaCurrent}>
+                Content Types
+              </Link>
+            )}
+          />
           <BreadcrumbItem
             to="/errata"
             render={({ className, ariaCurrent }) => (
@@ -417,14 +435,16 @@ const ErrataDetail: React.FunctionComponent = () => {
                 </DescriptionListDescription>
               </DescriptionListGroup>
             </DescriptionList>
-            <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
-              <DescriptionListGroup style={dlGroupStyle}>
-                <DescriptionListTerm style={termStyle}>Severity</DescriptionListTerm>
-                <DescriptionListDescription style={ddValueRowStyle}>
-                  <ErrataSeverityIconLabel severityLabel={severityLabel} />
-                </DescriptionListDescription>
-              </DescriptionListGroup>
-            </DescriptionList>
+            {isSecurity && (
+              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                <DescriptionListGroup style={dlGroupStyle}>
+                  <DescriptionListTerm style={termStyle}>Severity</DescriptionListTerm>
+                  <DescriptionListDescription style={ddValueRowStyle}>
+                    <ErrataSeverityIconLabel severityLabel={severityLabel} />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            )}
             <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
               <DescriptionListGroup style={dlGroupStyle}>
                 <DescriptionListTerm style={termStyle}>Reboot</DescriptionListTerm>

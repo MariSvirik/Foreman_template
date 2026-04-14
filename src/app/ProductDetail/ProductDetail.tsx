@@ -16,6 +16,8 @@ import {
     FlexItem,
     Grid,
     GridItem,
+    Level,
+    LevelItem,
     MenuToggle,
     MenuToggleCheckbox,
     PageSection,
@@ -23,13 +25,9 @@ import {
     PaginationVariant,
     SearchInput,
     Stack,
-    Tab,
-    TabContent,
-    TabContentBody,
-    TabTitleText,
-    Tabs,
     Text,
     TextArea,
+    TextContent,
     Title,
     Toolbar,
     ToolbarContent,
@@ -37,6 +35,9 @@ import {
     ToolbarItem,
     Tooltip,
 } from '@patternfly/react-core';
+import { css } from '@patternfly/react-styles';
+import tabStyles from '@patternfly/react-styles/css/components/Tabs/tabs.mjs';
+import tabContentStyles from '@patternfly/react-styles/css/components/TabContent/tab-content.mjs';
 import {
     Table,
     Tbody,
@@ -48,11 +49,24 @@ import {
 import {
     EllipsisVIcon,
     PencilAltIcon,
-    RedoIcon,
     SyncIcon,
 } from '@patternfly/react-icons';
 import { Link, useParams } from 'react-router-dom';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
+
+const spacingL = 'var(--pf-v5-global--spacer--l, var(--pf-global--spacer--lg, 24px))';
+const spacingMd = 'var(--pf-v5-global--spacer--md, var(--pf-global--spacer--md, 16px))';
+const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global--BackgroundColor--100, #fff))';
+
+const TAB_IDS = {
+    repositories: 'product-detail-tab-repositories',
+    tasks: 'product-detail-tab-tasks',
+} as const;
+
+const PANEL_IDS = {
+    repositories: 'product-detail-panel-repositories',
+    tasks: 'product-detail-panel-tasks',
+} as const;
 
 // Mock data for product
 const mockProductData = {
@@ -97,8 +111,7 @@ const mockRepositories = [
 
 const ProductDetail: React.FunctionComponent = () => {
     const { productName } = useParams<{ productName: string }>();
-    const [activeTabKey, setActiveTabKey] = React.useState<string>('repositories');
-    const [isActionsDropdownOpen, setIsActionsDropdownOpen] = React.useState(false);
+    const [activeTabKey, setActiveTabKey] = React.useState<'repositories' | 'tasks'>('repositories');
     const [selectedRepositories, setSelectedRepositories] = React.useState<Set<number>>(new Set());
     const [isBulkSelectOpen, setIsBulkSelectOpen] = React.useState(false);
     const [isRepositoriesKebabOpen, setIsRepositoriesKebabOpen] = React.useState(false);
@@ -112,10 +125,6 @@ const ProductDetail: React.FunctionComponent = () => {
     const [perPage, setPerPage] = React.useState(20);
 
     useDocumentTitle(`PatternFly Seed | ${productName || 'Product'}`);
-
-    const handleTabClick = (_event: React.MouseEvent, tabIndex: string) => {
-        setActiveTabKey(tabIndex);
-    };
 
     // Filter repositories based on search
     const filteredRepositories = mockRepositories.filter(repo =>
@@ -153,6 +162,17 @@ const ProductDetail: React.FunctionComponent = () => {
     const isPartiallySelected = selectedRepositories.size > 0 && selectedRepositories.size < filteredRepositories.length;
     const menuToggleCheckmark: boolean | null = isAllSelected ? true : isPartiallySelected ? null : false;
 
+    const itemCount = filteredRepositories.length;
+
+    const cellTightCheckbox = {
+        paddingRight: 'var(--pf-v5-global--spacer--xs, var(--pf-global--spacer--xs, 8px))',
+        width: '1%',
+        whiteSpace: 'nowrap' as const,
+    };
+    const cellTightName = {
+        paddingLeft: 'var(--pf-v5-global--spacer--xs, var(--pf-global--spacer--xs, 8px))',
+    };
+
     const handleDescriptionEdit = () => {
         setIsEditingDescription(true);
     };
@@ -166,9 +186,20 @@ const ProductDetail: React.FunctionComponent = () => {
         setIsEditingDescription(false);
     };
 
-    const repositoriesTabContent = (
-        <>
-            <Toolbar>
+    const tableSection = (
+        <div
+            style={{
+                paddingLeft: spacingL,
+                paddingRight: spacingL,
+                boxSizing: 'border-box',
+            }}
+        >
+            <Toolbar
+                id="product-detail-repositories-toolbar"
+                ouiaId="product-detail-repositories-toolbar"
+                inset={{ default: 'insetNone' }}
+                style={{ marginBottom: 0, paddingLeft: 0, paddingRight: 0 }}
+            >
                 <ToolbarContent>
                     <ToolbarGroup>
                         <ToolbarItem>
@@ -189,8 +220,8 @@ const ProductDetail: React.FunctionComponent = () => {
                                                     aria-label="Select all"
                                                     isChecked={menuToggleCheckmark}
                                                     onChange={(checked) => handleSelectAll(checked)}
-                                                />
-                                            ]
+                                                />,
+                                            ],
                                         }}
                                         aria-label="Bulk select"
                                     />
@@ -198,23 +229,32 @@ const ProductDetail: React.FunctionComponent = () => {
                                 popperProps={{ appendTo: () => document.body }}
                             >
                                 <DropdownList>
-                                    <DropdownItem key="select-none" onClick={() => {
-                                        handleSelectAll(false);
-                                        setIsBulkSelectOpen(false);
-                                    }}>
-                                        Select none ({filteredRepositories.length} items)
+                                    <DropdownItem
+                                        key="select-none"
+                                        onClick={() => {
+                                            handleSelectAll(false);
+                                            setIsBulkSelectOpen(false);
+                                        }}
+                                    >
+                                        Select none ({itemCount} items)
                                     </DropdownItem>
-                                    <DropdownItem key="select-page" onClick={() => {
-                                        handleSelectPage();
-                                        setIsBulkSelectOpen(false);
-                                    }}>
+                                    <DropdownItem
+                                        key="select-page"
+                                        onClick={() => {
+                                            handleSelectPage();
+                                            setIsBulkSelectOpen(false);
+                                        }}
+                                    >
                                         Select page ({paginatedRepositories.length} items)
                                     </DropdownItem>
-                                    <DropdownItem key="select-all" onClick={() => {
-                                        handleSelectAll(true);
-                                        setIsBulkSelectOpen(false);
-                                    }}>
-                                        Select all ({filteredRepositories.length} items)
+                                    <DropdownItem
+                                        key="select-all"
+                                        onClick={() => {
+                                            handleSelectAll(true);
+                                            setIsBulkSelectOpen(false);
+                                        }}
+                                    >
+                                        Select all ({itemCount} items)
                                     </DropdownItem>
                                 </DropdownList>
                             </Dropdown>
@@ -223,11 +263,12 @@ const ProductDetail: React.FunctionComponent = () => {
                             <SearchInput
                                 placeholder="Search..."
                                 value={searchValue}
-                                onChange={(event, value) => {
+                                onChange={(_event, value) => {
                                     setSearchValue(value);
                                     setPage(1);
                                 }}
                                 onClear={() => setSearchValue('')}
+                                aria-label="Search repositories"
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -236,7 +277,9 @@ const ProductDetail: React.FunctionComponent = () => {
                             <Button variant="primary">Add repository</Button>
                         </ToolbarItem>
                         <ToolbarItem>
-                            <Button variant="secondary" icon={<SyncIcon />}>Sync</Button>
+                            <Button variant="secondary" icon={<SyncIcon />}>
+                                Sync
+                            </Button>
                         </ToolbarItem>
                         <ToolbarItem>
                             <Dropdown
@@ -255,35 +298,46 @@ const ProductDetail: React.FunctionComponent = () => {
                                 )}
                                 popperProps={{ appendTo: () => document.body }}
                             >
-                            <DropdownList>
-                                <DropdownItem key="repo-discovery">Repo discovery</DropdownItem>
-                                <DropdownItem key="remove">Remove repositories</DropdownItem>
-                                <DropdownItem key="reclaim">Reclaim space</DropdownItem>
-                            </DropdownList>
+                                <DropdownList>
+                                    <DropdownItem key="repo-discovery">Repo discovery</DropdownItem>
+                                    <DropdownItem key="remove">Remove repositories</DropdownItem>
+                                    <DropdownItem key="reclaim">Reclaim space</DropdownItem>
+                                </DropdownList>
                             </Dropdown>
+                        </ToolbarItem>
+                    </ToolbarGroup>
+                    <ToolbarGroup align={{ default: 'alignRight' }}>
+                        <ToolbarItem>
+                            <Pagination
+                                itemCount={itemCount}
+                                perPage={perPage}
+                                page={page}
+                                onSetPage={(_event, pageNumber) => setPage(pageNumber)}
+                                onPerPageSelect={(_event, perPageOption) => {
+                                    setPerPage(perPageOption);
+                                    setPage(1);
+                                }}
+                                variant={PaginationVariant.top}
+                                isCompact
+                                ouiaId="product-detail-repositories-pagination-top"
+                            />
                         </ToolbarItem>
                     </ToolbarGroup>
                 </ToolbarContent>
             </Toolbar>
-            <div style={{ marginBottom: 'var(--pf-global--spacer--md)' }}>
-                <Pagination
-                    itemCount={filteredRepositories.length}
-                    perPage={perPage}
-                    page={page}
-                    onSetPage={(_event, pageNumber) => setPage(pageNumber)}
-                    onPerPageSelect={(_event, perPageOption) => {
-                        setPerPage(perPageOption);
-                        setPage(1);
-                    }}
-                    variant={PaginationVariant.top}
-                    isCompact
-                />
-            </div>
-            <Table>
+
+            <Table
+                aria-label="Product repositories"
+                variant="compact"
+                borders
+                isStriped
+                ouiaId="product-detail-repositories-table"
+                style={{ marginBottom: 0 }}
+            >
                 <Thead>
                     <Tr>
-                        <Th></Th>
-                        <Th>Name</Th>
+                        <Th screenReaderText="Row select" style={cellTightCheckbox} />
+                        <Th style={cellTightName}>Name</Th>
                         <Th>Type</Th>
                         <Th>Sync status</Th>
                         <Th>Content</Th>
@@ -292,16 +346,16 @@ const ProductDetail: React.FunctionComponent = () => {
                 <Tbody>
                     {paginatedRepositories.map((repo) => (
                         <Tr key={repo.id}>
-                            <Td>
+                            <Td dataLabel="Select row" style={cellTightCheckbox}>
                                 <Checkbox
                                     isChecked={selectedRepositories.has(repo.id)}
-                                    onChange={(event, checked) => handleRowSelect(repo.id, checked)}
+                                    onChange={(_event, checked) => handleRowSelect(repo.id, checked)}
                                     aria-label={`Select repository ${repo.name}`}
                                     id={`select-repo-${repo.id}`}
                                     name={`select-repo-${repo.id}`}
                                 />
                             </Td>
-                            <Td dataLabel="Name">
+                            <Td dataLabel="Name" style={cellTightName}>
                                 <Button variant="link" isInline>
                                     {repo.name}
                                 </Button>
@@ -323,27 +377,47 @@ const ProductDetail: React.FunctionComponent = () => {
                     ))}
                 </Tbody>
             </Table>
-            <div style={{ marginTop: 'var(--pf-global--spacer--md)' }}>
-                <Pagination
-                    itemCount={filteredRepositories.length}
-                    perPage={perPage}
-                    page={page}
-                    onSetPage={(_event, pageNumber) => setPage(pageNumber)}
-                    onPerPageSelect={(_event, perPageOption) => {
-                        setPerPage(perPageOption);
-                        setPage(1);
-                    }}
-                    variant={PaginationVariant.bottom}
-                    isCompact
-                />
-            </div>
-        </>
+
+            <Pagination
+                itemCount={itemCount}
+                perPage={perPage}
+                page={page}
+                onSetPage={(_event, pageNumber) => setPage(pageNumber)}
+                onPerPageSelect={(_event, perPageOption) => {
+                    setPerPage(perPageOption);
+                    setPage(1);
+                }}
+                variant={PaginationVariant.bottom}
+                isStatic
+                isCompact
+                ouiaId="product-detail-repositories-pagination-bottom"
+                style={{
+                    marginTop: 0,
+                    paddingTop: spacingMd,
+                    paddingBlockStart: spacingMd,
+                    paddingLeft: 0,
+                    paddingRight: 0,
+                    paddingInline: 0,
+                }}
+            />
+        </div>
     );
 
     return (
-        <PageSection style={{ backgroundColor: 'white' }}>
-            <Stack hasGutter>
-                {/* Breadcrumbs */}
+        <PageSection
+            aria-label="Product detail"
+            padding={{ default: 'noPadding' }}
+            style={{ backgroundColor: background100 }}
+        >
+            <div
+                style={{
+                    paddingTop: spacingMd,
+                    paddingRight: spacingL,
+                    paddingBottom: 0,
+                    paddingLeft: spacingL,
+                    boxSizing: 'border-box',
+                }}
+            >
                 <Breadcrumb>
                     <BreadcrumbItem
                         to="/repositories"
@@ -353,48 +427,63 @@ const ProductDetail: React.FunctionComponent = () => {
                             </Link>
                         )}
                     />
-                    <BreadcrumbItem>
-                        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
-                            <FlexItem>{productName || 'Product'}</FlexItem>
-                            <FlexItem>
-                                <Button variant="plain" aria-label="Refresh" style={{ padding: 0 }}>
-                                    <RedoIcon />
-                                </Button>
-                            </FlexItem>
-                        </Flex>
-                    </BreadcrumbItem>
+                    <BreadcrumbItem isActive>{productName || 'Product'}</BreadcrumbItem>
                 </Breadcrumb>
+            </div>
 
-                {/* Header */}
-                <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
-                    <Title headingLevel="h1" size="lg">{productName || 'Product'}</Title>
-                    <Flex spaceItems={{ default: 'spaceItemsSm' }}>
-                        <Button variant="secondary">Edit</Button>
-                        <Dropdown
-                            isOpen={isHeaderKebabOpen}
-                            onOpenChange={setIsHeaderKebabOpen}
-                            toggle={(toggleRef) => (
-                                <MenuToggle
-                                    ref={toggleRef}
-                                    variant="plain"
-                                    onClick={() => setIsHeaderKebabOpen(!isHeaderKebabOpen)}
-                                    isExpanded={isHeaderKebabOpen}
-                                    aria-label="Actions"
+            <section
+                aria-label="Product overview"
+                style={{
+                    paddingTop: spacingMd,
+                    paddingRight: spacingL,
+                    paddingBottom: spacingMd,
+                    paddingLeft: spacingL,
+                    boxSizing: 'border-box',
+                }}
+            >
+                <Stack hasGutter>
+                    <Level hasGutter>
+                        <LevelItem>
+                            <TextContent>
+                                <Title headingLevel="h1" size="2xl">
+                                    {productName || 'Product'}
+                                </Title>
+                                <Text component="p">
+                                    Repositories, sync state, and tasks for this product. Use the Repositories tab to
+                                    manage content sources.
+                                </Text>
+                            </TextContent>
+                        </LevelItem>
+                        <LevelItem>
+                            <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsFlexStart' }}>
+                                <Button variant="secondary">Edit</Button>
+                                <Dropdown
+                                    isOpen={isHeaderKebabOpen}
+                                    onOpenChange={setIsHeaderKebabOpen}
+                                    toggle={(toggleRef) => (
+                                        <MenuToggle
+                                            ref={toggleRef}
+                                            variant="plain"
+                                            onClick={() => setIsHeaderKebabOpen(!isHeaderKebabOpen)}
+                                            isExpanded={isHeaderKebabOpen}
+                                            aria-label="Actions"
+                                        >
+                                            <EllipsisVIcon />
+                                        </MenuToggle>
+                                    )}
+                                    popperProps={{ appendTo: () => document.body }}
                                 >
-                                    <EllipsisVIcon />
-                                </MenuToggle>
-                            )}
-                            popperProps={{ appendTo: () => document.body }}
-                        >
-                            <DropdownList>
-                                <DropdownItem key="delete" isDanger>Delete</DropdownItem>
-                            </DropdownList>
-                        </Dropdown>
-                    </Flex>
-                </Flex>
+                                    <DropdownList>
+                                        <DropdownItem key="delete" isDanger>
+                                            Delete
+                                        </DropdownItem>
+                                    </DropdownList>
+                                </Dropdown>
+                            </Flex>
+                        </LevelItem>
+                    </Level>
 
-                {/* Two Column Layout */}
-                <Grid hasGutter>
+                    <Grid hasGutter>
                     {/* Left Column */}
                     <GridItem span={12} md={6}>
                         <Stack hasGutter>
@@ -405,7 +494,7 @@ const ProductDetail: React.FunctionComponent = () => {
                                         <FlexItem>
                                             <TextArea
                                                 value={description}
-                                                onChange={(value) => setDescription(value)}
+                                                onChange={(_e, value) => setDescription(value)}
                                                 aria-label="Description"
                                                 rows={3}
                                             />
@@ -557,25 +646,93 @@ const ProductDetail: React.FunctionComponent = () => {
                         </Stack>
                     </GridItem>
                 </Grid>
+                </Stack>
+            </section>
 
-                {/* Tabs */}
-                <Tabs activeKey={activeTabKey} onSelect={handleTabClick}>
-                    <Tab eventKey="repositories" title={<TabTitleText>Repositories</TabTitleText>} aria-label="Repositories tab">
-                        <TabContent eventKey="repositories" id="repositories-content">
-                            <TabContentBody>
-                                {repositoriesTabContent}
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                    <Tab eventKey="tasks" title={<TabTitleText>Tasks</TabTitleText>} aria-label="Tasks tab">
-                        <TabContent eventKey="tasks" id="tasks-content">
-                            <TabContentBody>
-                                <Text>Tasks content would be displayed here.</Text>
-                            </TabContentBody>
-                        </TabContent>
-                    </Tab>
-                </Tabs>
-            </Stack>
+            <div
+                style={{
+                    paddingTop: 0,
+                    paddingRight: spacingL,
+                    paddingLeft: spacingL,
+                    boxSizing: 'border-box',
+                }}
+            >
+                <div className={css(tabStyles.tabs)} aria-label="Product detail tabs">
+                    <ul className={css(tabStyles.tabsList)} role="tablist">
+                        <li
+                            className={css(
+                                tabStyles.tabsItem,
+                                activeTabKey === 'repositories' && tabStyles.modifiers.current,
+                            )}
+                            role="presentation"
+                        >
+                            <button
+                                type="button"
+                                id={TAB_IDS.repositories}
+                                className={css(tabStyles.tabsLink)}
+                                role="tab"
+                                aria-selected={activeTabKey === 'repositories'}
+                                aria-controls={PANEL_IDS.repositories}
+                                tabIndex={activeTabKey === 'repositories' ? 0 : -1}
+                                onClick={() => setActiveTabKey('repositories')}
+                            >
+                                <span className={css(tabStyles.tabsItemText)}>Repositories</span>
+                            </button>
+                        </li>
+                        <li
+                            className={css(
+                                tabStyles.tabsItem,
+                                activeTabKey === 'tasks' && tabStyles.modifiers.current,
+                            )}
+                            role="presentation"
+                        >
+                            <button
+                                type="button"
+                                id={TAB_IDS.tasks}
+                                className={css(tabStyles.tabsLink)}
+                                role="tab"
+                                aria-selected={activeTabKey === 'tasks'}
+                                aria-controls={PANEL_IDS.tasks}
+                                tabIndex={activeTabKey === 'tasks' ? 0 : -1}
+                                onClick={() => setActiveTabKey('tasks')}
+                            >
+                                <span className={css(tabStyles.tabsItemText)}>Tasks</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                style={{
+                    paddingBottom: spacingL,
+                    boxSizing: 'border-box',
+                }}
+            >
+                <section
+                    id={PANEL_IDS.repositories}
+                    role="tabpanel"
+                    aria-labelledby={TAB_IDS.repositories}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ padding: 0 }}
+                    hidden={activeTabKey !== 'repositories'}
+                    tabIndex={0}
+                >
+                    {tableSection}
+                </section>
+
+                <section
+                    id={PANEL_IDS.tasks}
+                    role="tabpanel"
+                    aria-labelledby={TAB_IDS.tasks}
+                    className={css(tabContentStyles.tabContent)}
+                    style={{ paddingLeft: spacingL, paddingRight: spacingL }}
+                    hidden={activeTabKey !== 'tasks'}
+                    tabIndex={0}
+                >
+                    <Text component="p">Tasks content would be displayed here.</Text>
+                </section>
+            </div>
         </PageSection>
     );
 };
