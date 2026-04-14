@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-    ActionGroup,
     Breadcrumb,
     BreadcrumbItem,
     Button,
@@ -8,6 +7,7 @@ import {
     Divider,
     Form,
     FormGroup,
+    FormHelperText,
     FormSection,
     Grid,
     GridItem,
@@ -24,9 +24,8 @@ import {
     TextInput,
     Title,
     Wizard,
-    WizardStep,
     WizardBody,
-    useWizardFooter,
+    WizardStep,
 } from '@patternfly/react-core';
 import {
     OutlinedQuestionCircleIcon,
@@ -35,7 +34,6 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const CreateHost: React.FunctionComponent = () => {
     const navigate = useNavigate();
-    const [currentStep, setCurrentStep] = React.useState(0);
 
     // Host step state
     const [name, setName] = React.useState('petra-mclay');
@@ -64,15 +62,6 @@ const CreateHost: React.FunctionComponent = () => {
     const [customPartitionTable, setCustomPartitionTable] = React.useState('');
 
     // Virtual Machine step state
-    const [cpus, setCpus] = React.useState(1);
-    const [memory, setMemory] = React.useState(2048);
-    const [startVM, setStartVM] = React.useState(true);
-    const [firmware, setFirmware] = React.useState('Automatic');
-    const [storagePool, setStoragePool] = React.useState('provision');
-    const [sizeGB, setSizeGB] = React.useState('10G');
-    const [allocationGB, setAllocationGB] = React.useState('0G');
-    const [allocationType, setAllocationType] = React.useState('None');
-    const [volumeType, setVolumeType] = React.useState('RAW');
 
     // Dropdown open states
     const [isDeployOnOpen, setIsDeployOnOpen] = React.useState(false);
@@ -88,27 +77,6 @@ const CreateHost: React.FunctionComponent = () => {
     const [isImageOpen, setIsImageOpen] = React.useState(false);
     const [isMediaOpen, setIsMediaOpen] = React.useState(false);
     const [isPartitionTableOpen, setIsPartitionTableOpen] = React.useState(false);
-    const [isStoragePoolOpen, setIsStoragePoolOpen] = React.useState(false);
-    const [isVolumeTypeOpen, setIsVolumeTypeOpen] = React.useState(false);
-
-    const totalSteps = 7; // Overview, OS, Interface, Parameters, Plugins, Ansible, Puppet
-
-    const onNext = () => {
-        if (currentStep < totalSteps - 1) {
-            setCurrentStep(currentStep + 1);
-        }
-    };
-
-    const onBack = () => {
-        if (currentStep > 0) {
-            setCurrentStep(currentStep - 1);
-        }
-    };
-
-    const onGoToStep = (step: number) => {
-        setCurrentStep(step);
-    };
-
     const handleSubmit = () => {
         console.log('Form submitted');
     };
@@ -128,7 +96,6 @@ const CreateHost: React.FunctionComponent = () => {
                             </span>
                         }
                         fieldId="name"
-                        helperText="Also used as the host's primary interface name"
                     >
                         <div style={{ display: 'flex', gap: 'var(--pf-global--spacer--xs)', alignItems: 'center' }}>
                             <TextInput
@@ -142,6 +109,7 @@ const CreateHost: React.FunctionComponent = () => {
                                 <span style={{ fontSize: '16px' }}>⇄</span>
                             </Button>
                         </div>
+                        <FormHelperText>Also used as the host&apos;s primary interface name</FormHelperText>
                     </FormGroup>
                 </GridItem>
                 <GridItem span={12}>
@@ -259,7 +227,7 @@ const CreateHost: React.FunctionComponent = () => {
                                     <SelectOption value="vmware (VMware)">vmware (VMware)</SelectOption>
                                 </SelectList>
                             </Select>
-                            <Button variant="secondary" isSmall>inherit</Button>
+                            <Button variant="secondary" size="sm">inherit</Button>
                         </div>
                     </FormGroup>
                 </GridItem>
@@ -373,7 +341,7 @@ const CreateHost: React.FunctionComponent = () => {
                                     <SelectOption value="inherit">inherit</SelectOption>
                                 </SelectList>
                             </Select>
-                            <Button variant="secondary" isSmall>inherit</Button>
+                            <Button variant="secondary" size="sm">inherit</Button>
                         </div>
                     </FormGroup>
                 </GridItem>
@@ -407,7 +375,7 @@ const CreateHost: React.FunctionComponent = () => {
                                     <SelectOption value="inherit">inherit</SelectOption>
                                 </SelectList>
                             </Select>
-                            <Button variant="secondary" isSmall>inherit</Button>
+                            <Button variant="secondary" size="sm">inherit</Button>
                         </div>
                     </FormGroup>
                 </GridItem>
@@ -441,7 +409,7 @@ const CreateHost: React.FunctionComponent = () => {
                                     <SelectOption value="inherit">inherit</SelectOption>
                                 </SelectList>
                             </Select>
-                            <Button variant="secondary" isSmall>inherit</Button>
+                            <Button variant="secondary" size="sm">inherit</Button>
                         </div>
                     </FormGroup>
                 </GridItem>
@@ -475,7 +443,7 @@ const CreateHost: React.FunctionComponent = () => {
                                     <SelectOption value="inherit">inherit</SelectOption>
                                 </SelectList>
                             </Select>
-                            <Button variant="secondary" isSmall>inherit</Button>
+                            <Button variant="secondary" size="sm">inherit</Button>
                         </div>
                     </FormGroup>
                 </GridItem>
@@ -494,203 +462,22 @@ const CreateHost: React.FunctionComponent = () => {
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--pf-global--spacer--sm)' }}>
                                 <Text component="p">{i}. mock.ansible.role.{i}</Text>
-                                <Button variant="primary" isSmall>Add</Button>
+                                <Button variant="primary" size="sm">Add</Button>
                             </div>
                         ))}
                     </FormSection>
                 </GridItem>
                 <GridItem span={6}>
-                    <FormSection title="Assigned Ansible Roles" titleIcon={<OutlinedQuestionCircleIcon />}>
+                    <FormSection
+                        title={
+                            <>
+                                Assigned Ansible Roles <OutlinedQuestionCircleIcon />
+                            </>
+                        }
+                    >
                         <Text component="p" style={{ color: 'var(--pf-global--Color--200)' }}>
                             No roles assigned
                         </Text>
-                    </FormSection>
-                </GridItem>
-            </Grid>
-        </Form>
-    );
-
-    const renderVirtualMachineStep = () => (
-        <Form>
-            <Grid hasGutter>
-                <GridItem span={6}>
-                    <FormGroup label="CPUs" fieldId="cpus">
-                        <TextInput
-                            id="cpus"
-                            type="number"
-                            value={cpus.toString()}
-                            onChange={(_event, value) => setCpus(parseInt(value) || 1)}
-                            aria-label="Number of CPUs"
-                        />
-                    </FormGroup>
-                </GridItem>
-                <GridItem span={6}>
-                    <FormGroup label="Memory" fieldId="memory">
-                        <TextInput
-                            id="memory"
-                            type="number"
-                            value={memory.toString()}
-                            onChange={(_event, value) => setMemory(parseInt(value) || 0)}
-                            aria-label="Memory in MB"
-                        />
-                        <Text component="small" style={{ marginTop: 'var(--pf-global--spacer--xs)' }}>
-                            MB
-                        </Text>
-                    </FormGroup>
-                </GridItem>
-                <GridItem span={12}>
-                    <FormGroup fieldId="start">
-                        <Checkbox
-                            id="start"
-                            label="Power ON this machine"
-                            isChecked={startVM}
-                            onChange={(_event, checked) => setStartVM(checked)}
-                        />
-                    </FormGroup>
-                </GridItem>
-                <GridItem span={12}>
-                    <FormGroup 
-                        label="Firmware" 
-                        fieldId="firmware"
-                        labelIcon={<OutlinedQuestionCircleIcon />}
-                    >
-                        <div>
-                            <Radio
-                                id="firmware-automatic"
-                                name="firmware"
-                                label="Automatic"
-                                isChecked={firmware === 'Automatic'}
-                                onChange={() => setFirmware('Automatic')}
-                            />
-                            <Radio
-                                id="firmware-bios"
-                                name="firmware"
-                                label="BIOS"
-                                isChecked={firmware === 'BIOS'}
-                                onChange={() => setFirmware('BIOS')}
-                            />
-                            <Radio
-                                id="firmware-uefi"
-                                name="firmware"
-                                label="UEFI"
-                                isChecked={firmware === 'UEFI'}
-                                onChange={() => setFirmware('UEFI')}
-                            />
-                            <Radio
-                                id="firmware-uefi-secure"
-                                name="firmware"
-                                label="UEFI Secure Boot"
-                                isChecked={firmware === 'UEFI Secure Boot'}
-                                onChange={() => setFirmware('UEFI Secure Boot')}
-                            />
-                        </div>
-                    </FormGroup>
-                </GridItem>
-                <GridItem span={12}>
-                    <FormSection title="Storage">
-                        <Grid hasGutter>
-                            <GridItem span={6}>
-                                <FormGroup label="Storage pool" fieldId="storage-pool">
-                                    <Select
-                                        selected={storagePool}
-                                        onSelect={(event, value) => {
-                                            setStoragePool(value as string);
-                                            setIsStoragePoolOpen(false);
-                                        }}
-                                        isOpen={isStoragePoolOpen}
-                                        onOpenChange={setIsStoragePoolOpen}
-                                        toggle={(toggleRef) => (
-                                            <MenuToggle
-                                                ref={toggleRef}
-                                                onClick={() => setIsStoragePoolOpen(!isStoragePoolOpen)}
-                                                isExpanded={isStoragePoolOpen}
-                                                style={{ width: '100%' }}
-                                            >
-                                                {storagePool}
-                                            </MenuToggle>
-                                        )}
-                                    >
-                                        <SelectList>
-                                            <SelectOption value="provision">provision</SelectOption>
-                                        </SelectList>
-                                    </Select>
-                                </FormGroup>
-                            </GridItem>
-                            <GridItem span={6}>
-                                <FormGroup label="Size (GB)" fieldId="size-gb">
-                                    <TextInput
-                                        id="size-gb"
-                                        value={sizeGB}
-                                        onChange={(_event, value) => setSizeGB(value)}
-                                        aria-label="Size in GB"
-                                    />
-                                </FormGroup>
-                            </GridItem>
-                            <GridItem span={6}>
-                                <FormGroup label="Allocation (GB)" fieldId="allocation-gb">
-                                    <div style={{ display: 'flex', gap: 'var(--pf-global--spacer--xs)' }}>
-                                        <TextInput
-                                            id="allocation-gb"
-                                            value={allocationGB}
-                                            onChange={(_event, value) => setAllocationGB(value)}
-                                            aria-label="Allocation in GB"
-                                        />
-                                        <Button
-                                            variant={allocationType === 'None' ? 'primary' : 'secondary'}
-                                            isSmall
-                                            onClick={() => setAllocationType('None')}
-                                        >
-                                            None
-                                        </Button>
-                                        <Button
-                                            variant={allocationType === 'Size' ? 'primary' : 'secondary'}
-                                            isSmall
-                                            onClick={() => setAllocationType('Size')}
-                                        >
-                                            Size
-                                        </Button>
-                                        <Button
-                                            variant={allocationType === 'Full' ? 'primary' : 'secondary'}
-                                            isSmall
-                                            onClick={() => setAllocationType('Full')}
-                                        >
-                                            Full
-                                        </Button>
-                                    </div>
-                                </FormGroup>
-                            </GridItem>
-                            <GridItem span={6}>
-                                <FormGroup label="Type" fieldId="volume-type">
-                                    <Select
-                                        selected={volumeType}
-                                        onSelect={(event, value) => {
-                                            setVolumeType(value as string);
-                                            setIsVolumeTypeOpen(false);
-                                        }}
-                                        isOpen={isVolumeTypeOpen}
-                                        onOpenChange={setIsVolumeTypeOpen}
-                                        toggle={(toggleRef) => (
-                                            <MenuToggle
-                                                ref={toggleRef}
-                                                onClick={() => setIsVolumeTypeOpen(!isVolumeTypeOpen)}
-                                                isExpanded={isVolumeTypeOpen}
-                                                style={{ width: '100%' }}
-                                            >
-                                                {volumeType}
-                                            </MenuToggle>
-                                        )}
-                                    >
-                                        <SelectList>
-                                            <SelectOption value="RAW">RAW</SelectOption>
-                                            <SelectOption value="QCOW2">QCOW2</SelectOption>
-                                        </SelectList>
-                                    </Select>
-                                </FormGroup>
-                            </GridItem>
-                            <GridItem span={12}>
-                                <Button variant="primary">+ Add Volume</Button>
-                            </GridItem>
-                        </Grid>
                     </FormSection>
                 </GridItem>
             </Grid>
@@ -1017,50 +804,49 @@ const CreateHost: React.FunctionComponent = () => {
                 <StackItem style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                         <Wizard
-                            startAtStep={currentStep + 1}
-                            onNext={onNext}
-                            onBack={onBack}
-                            onGoToStep={onGoToStep}
-                            footer={
-                                <div style={{ 
-                                    display: 'flex', 
-                                    gap: '16px',
-                                    paddingTop: '24px',
-                                    paddingBottom: 'var(--pf-global--spacer--md)',
-                                    paddingLeft: '24px',
-                                    paddingRight: 'var(--pf-global--spacer--md)',
-                                    backgroundColor: 'white',
-                                    borderTop: '1px solid var(--pf-global--BorderColor--300)',
-                                    position: 'sticky',
-                                    bottom: 0,
-                                    zIndex: 100
-                                }}>
-                                    <Button 
-                                        variant="secondary" 
-                                        onClick={onBack}
-                                        isDisabled={currentStep === 0}
+                            onClose={handleCancel}
+                            footer={(activeStep, onWizardNext, onWizardBack, onWizardClose) => (
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        gap: '16px',
+                                        paddingTop: '24px',
+                                        paddingBottom: 'var(--pf-global--spacer--md)',
+                                        paddingLeft: '24px',
+                                        paddingRight: 'var(--pf-global--spacer--md)',
+                                        backgroundColor: 'white',
+                                        borderTop: '1px solid var(--pf-global--BorderColor--300)',
+                                        position: 'sticky',
+                                        bottom: 0,
+                                        zIndex: 100,
+                                    }}
+                                >
+                                    <Button
+                                        variant="secondary"
+                                        onClick={onWizardBack}
+                                        isDisabled={activeStep?.id === 'overview-step'}
                                     >
                                         Back
                                     </Button>
-                                    <Button 
-                                        variant="primary" 
-                                        onClick={onNext}
-                                        isDisabled={currentStep === totalSteps - 1}
+                                    <Button
+                                        variant="primary"
+                                        onClick={onWizardNext}
+                                        isDisabled={activeStep?.id === 'puppet-step'}
                                     >
                                         Next
                                     </Button>
-                                    <Button 
-                                        variant="primary" 
+                                    <Button
+                                        variant="primary"
                                         onClick={handleSubmit}
-                                        isDisabled={currentStep !== totalSteps - 1}
+                                        isDisabled={activeStep?.id !== 'puppet-step'}
                                     >
                                         Create host
                                     </Button>
-                                    <Button variant="link" onClick={handleCancel}>
+                                    <Button variant="link" onClick={onWizardClose}>
                                         Cancel
                                     </Button>
                                 </div>
-                            }
+                            )}
                         >
                             <WizardStep name="Overview" id="overview-step">
                                 <WizardBody>{renderOverviewStep()}</WizardBody>

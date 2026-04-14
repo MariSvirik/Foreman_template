@@ -29,6 +29,9 @@ module.exports = {
   // A preset that is used as a base for Jest's configuration
   preset: "ts-jest/presets/js-with-ts",
 
+  // Allow transforming ESM-only @patternfly/react-component-groups (e.g. BulkSelect)
+  transformIgnorePatterns: ['/node_modules/(?!@patternfly/react-component-groups/)'],
+
   // The test environment that will be used for testing.
   testEnvironment: "jest-fixed-jsdom",
 
