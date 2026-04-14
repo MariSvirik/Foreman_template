@@ -1,14 +1,23 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import path from 'path';
+import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin';
 import Dotenv from 'dotenv-webpack';
 const BG_IMAGES_DIRNAME = 'bgimages';
-const ASSET_PATH = process.env.ASSET_PATH || '/';
+
+/** GitHub Pages project URL: https://<user>.github.io/<repo>/ */
+const GITHUB_PAGES_REPO_BASE = '/Foreman_template/';
 
 export default (env) => {
+  const ASSET_PATH =
+    process.env.ASSET_PATH ||
+    (env === 'production' ? GITHUB_PAGES_REPO_BASE : '/');
+  const routerBasename =
+    ASSET_PATH === '/' ? '' : ASSET_PATH.replace(/\/+$/, '');
+
   return {
     module: {
       rules: [
@@ -103,8 +112,12 @@ export default (env) => {
       publicPath: ASSET_PATH,
     },
     plugins: [
+      new webpack.DefinePlugin({
+        __ROUTER_BASENAME__: JSON.stringify(routerBasename),
+      }),
       new HtmlWebpackPlugin({
         template: path.resolve('./src', 'index.html'),
+        base: ASSET_PATH === '/' ? undefined : ASSET_PATH,
       }),
       new Dotenv({
         systemvars: true,

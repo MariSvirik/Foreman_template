@@ -1,3 +1,6 @@
+/** Injected by webpack DefinePlugin (GitHub Pages base path, e.g. /Foreman_template) */
+declare const __ROUTER_BASENAME__: string;
+
 declare module '*.png';
 declare module '*.jpg';
 declare module '*.jpeg';

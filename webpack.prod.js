@@ -10,9 +10,6 @@ import TerserJSPlugin from 'terser-webpack-plugin';
 export default merge(common('production'), {
   mode: 'production',
   devtool: 'source-map',
-  output: {
-    publicPath: '/TestingwithNicole/',
-  },
   optimization: {
     minimizer: [
       new TerserJSPlugin({}),

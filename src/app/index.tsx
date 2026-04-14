@@ -5,8 +5,13 @@ import { AppLayout } from '@app/AppLayout/AppLayout';
 import { AppRoutes } from '@app/routes';
 import '@app/app.css';
 
+const routerBasename =
+  typeof __ROUTER_BASENAME__ === 'string' && __ROUTER_BASENAME__.length > 0
+    ? __ROUTER_BASENAME__
+    : undefined;
+
 const App: React.FunctionComponent = () => (
-  <Router>
+  <Router basename={routerBasename}>
     <AppLayout>
       <AppRoutes />
     </AppLayout>
