@@ -21,6 +21,7 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
+
 import { css } from '@patternfly/react-styles';
 import tabStyles from '@patternfly/react-styles/css/components/Tabs/tabs.mjs';
 import tabContentStyles from '@patternfly/react-styles/css/components/TabContent/tab-content.mjs';
@@ -70,18 +71,36 @@ const PANEL_IDS = {
 } as const;
 
 const MOCK_FILES = [
-  { path: '/etc/sysconfig/base', mode: '-rw-r--r--' },
-  { path: '/usr/share/doc/basesystem/README', mode: '-rw-r--r--' },
+  '/etc/sysconfig/base',
+  '/usr/share/doc/basesystem/README',
+  '/usr/lib/sysimage/rpm/basesystem',
 ];
 
-const MOCK_DEPS = [
-  { name: 'setup', type: 'Requires' },
-  { name: 'filesystem', type: 'Requires' },
+const MOCK_REQUIRES = [
+  '/usr/bin/python2',
+  'python(abi) = 2.7',
+  'python-jinja2',
+  'python-paramiko',
+  'python-six',
+  'python2-cryptography',
+  'PyYAML',
+  'sshpass',
+];
+
+const MOCK_PROVIDES = [
+  'ansible = 2.9.20-1.el7ae',
+  'bundled(python-backports-ssl_match_hostname) = 3.7.0.1',
+  'bundled(python-distro) = 1.4.0',
+  'bundled(python-ipaddress) = 1.0.22',
+  'bundled(python-selectors2) = 1.1.1',
+  'bundled(python-six) = 1.12.0',
+  'config(ansible) = 2.9.20-1.el7ae',
 ];
 
 const MOCK_REPOS = [
-  { name: 'RHEL 9 BaseOS', type: 'yum', lastSync: '2026-04-01' },
-  { name: 'RHEL 9 AppStream', type: 'yum', lastSync: '2026-04-01' },
+  { name: 'RHEL 9 BaseOS', product: 'Red Hat Enterprise Linux 9', contentView: 'Default Organization View', lastSync: '2026-04-01' },
+  { name: 'RHEL 9 AppStream', product: 'Red Hat Enterprise Linux 9', contentView: 'Default Organization View', lastSync: '2026-04-01' },
+  { name: 'EPEL 9', product: 'EPEL', contentView: 'Production CV', lastSync: '2026-03-28' },
 ];
 
 type TabKey = 'details' | 'files' | 'dependencies' | 'repositories';
@@ -108,40 +127,14 @@ const PackageDetail: React.FunctionComponent = () => {
 
   useDocumentTitle(`PatternFly Seed | ${displayNevra}`);
 
-  const toolbarPlaceholder =
-    activeTabKey === 'files'
-      ? 'Search files…'
-      : activeTabKey === 'dependencies'
-        ? 'Search dependencies…'
-        : 'Search repositories…';
-
-  const filteredFiles = React.useMemo(() => {
-    const q = toolbarSearch.trim().toLowerCase();
-    if (!q) {
-      return MOCK_FILES;
-    }
-    return MOCK_FILES.filter((f) => f.path.toLowerCase().includes(q) || f.mode.toLowerCase().includes(q));
-  }, [toolbarSearch]);
-
-  const filteredDeps = React.useMemo(() => {
-    const q = toolbarSearch.trim().toLowerCase();
-    if (!q) {
-      return MOCK_DEPS;
-    }
-    return MOCK_DEPS.filter(
-      (d) => d.name.toLowerCase().includes(q) || d.type.toLowerCase().includes(q),
-    );
-  }, [toolbarSearch]);
-
   const filteredRepos = React.useMemo(() => {
     const q = toolbarSearch.trim().toLowerCase();
-    if (!q) {
-      return MOCK_REPOS;
-    }
+    if (!q) return MOCK_REPOS;
     return MOCK_REPOS.filter(
       (r) =>
         r.name.toLowerCase().includes(q) ||
-        r.type.toLowerCase().includes(q) ||
+        r.product.toLowerCase().includes(q) ||
+        r.contentView.toLowerCase().includes(q) ||
         r.lastSync.toLowerCase().includes(q),
     );
   }, [toolbarSearch]);
@@ -153,7 +146,7 @@ const PackageDetail: React.FunctionComponent = () => {
     fontSize: '14px',
   };
 
-  const tabToolbar = (
+  const repoToolbar = (
     <Toolbar
       id="package-detail-toolbar"
       ouiaId="package-detail-toolbar"
@@ -164,21 +157,12 @@ const PackageDetail: React.FunctionComponent = () => {
         <ToolbarGroup>
           <ToolbarItem>
             <SearchInput
-              placeholder={toolbarPlaceholder}
+              placeholder="Search repositories…"
               value={toolbarSearch}
               onChange={(_e, v) => setToolbarSearch(v)}
               onClear={() => setToolbarSearch('')}
-              aria-label="Search tab content"
+              aria-label="Search repositories"
             />
-          </ToolbarItem>
-          <ToolbarItem>
-            <Button variant="primary">
-              {activeTabKey === 'files'
-                ? 'Upload file'
-                : activeTabKey === 'dependencies'
-                  ? 'Add dependency'
-                  : 'Add repository'}
-            </Button>
           </ToolbarItem>
         </ToolbarGroup>
       </ToolbarContent>
@@ -187,20 +171,18 @@ const PackageDetail: React.FunctionComponent = () => {
 
   const filesTable = (
     <div style={tablePadded}>
-      <Table aria-label="Package files" variant="compact" borders isStriped ouiaId="package-detail-files-table">
+      <Table aria-label="Package files" variant="compact" borders ouiaId="package-detail-files-table">
         <Thead>
           <Tr>
             <Th>Path</Th>
-            <Th>Mode</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {filteredFiles.map((f) => (
-            <Tr key={f.path}>
+          {MOCK_FILES.map((f, i) => (
+            <Tr key={f} isStriped={i % 2 === 1}>
               <Td dataLabel="Path">
-                <code>{f.path}</code>
+                <code>{f}</code>
               </Td>
-              <Td dataLabel="Mode">{f.mode}</Td>
             </Tr>
           ))}
         </Tbody>
@@ -208,30 +190,24 @@ const PackageDetail: React.FunctionComponent = () => {
     </div>
   );
 
-  const depsTable = (
-    <div style={tablePadded}>
-      <Table
-        aria-label="Package dependencies"
-        variant="compact"
-        borders
-        isStriped
-        ouiaId="package-detail-dependencies-table"
-      >
-        <Thead>
-          <Tr>
-            <Th>Package</Th>
-            <Th>Relationship</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {filteredDeps.map((d) => (
-            <Tr key={`${d.type}-${d.name}`}>
-              <Td dataLabel="Package">{d.name}</Td>
-              <Td dataLabel="Relationship">{d.type}</Td>
-            </Tr>
+  const depsPanel = (
+    <div style={{ ...tablePadded, display: 'flex', gap: spacingL, alignItems: 'flex-start' }}>
+      <div style={{ flex: 1 }}>
+        <Title headingLevel="h3" size="md" style={{ marginBottom: spacingSm }}>Requires</Title>
+        <div>
+          {MOCK_REQUIRES.map((r) => (
+            <Text key={r} component="p" style={bodyTextStyle}>{r}</Text>
           ))}
-        </Tbody>
-      </Table>
+        </div>
+      </div>
+      <div style={{ flex: 1 }}>
+        <Title headingLevel="h3" size="md" style={{ marginBottom: spacingSm }}>Provides</Title>
+        <div>
+          {MOCK_PROVIDES.map((p) => (
+            <Text key={p} component="p" style={bodyTextStyle}>{p}</Text>
+          ))}
+        </div>
+      </div>
     </div>
   );
 
@@ -241,21 +217,22 @@ const PackageDetail: React.FunctionComponent = () => {
         aria-label="Package repositories"
         variant="compact"
         borders
-        isStriped
         ouiaId="package-detail-repositories-table"
       >
         <Thead>
           <Tr>
             <Th>Name</Th>
-            <Th>Type</Th>
+            <Th>Product</Th>
+            <Th>Content view</Th>
             <Th>Last sync</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {filteredRepos.map((r) => (
-            <Tr key={r.name}>
+          {filteredRepos.map((r, i) => (
+            <Tr key={r.name} isStriped={i % 2 === 1}>
               <Td dataLabel="Name">{r.name}</Td>
-              <Td dataLabel="Type">{r.type}</Td>
+              <Td dataLabel="Product">{r.product}</Td>
+              <Td dataLabel="Content view">{r.contentView}</Td>
               <Td dataLabel="Last sync">{r.lastSync}</Td>
             </Tr>
           ))}
@@ -558,8 +535,8 @@ const PackageDetail: React.FunctionComponent = () => {
         </div>
       </div>
 
-      {/* Toolbar — Errata-style; hidden on Details tab */}
-      {activeTabKey !== 'details' && (
+      {/* Toolbar — only for Repositories tab */}
+      {activeTabKey === 'repositories' && (
         <div
           style={{
             paddingLeft: spacingL,
@@ -568,7 +545,7 @@ const PackageDetail: React.FunctionComponent = () => {
             fontSize: '14px',
           }}
         >
-          {tabToolbar}
+          {repoToolbar}
         </div>
       )}
 
@@ -612,7 +589,7 @@ const PackageDetail: React.FunctionComponent = () => {
           hidden={activeTabKey !== 'dependencies'}
           tabIndex={0}
         >
-          {depsTable}
+          {depsPanel}
         </section>
 
         <section

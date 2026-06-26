@@ -50,18 +50,21 @@ const CONTENT_TYPES: ContentTypeItem[] = [
     title: 'Files',
     description: 'Arbitrary files distributed to managed hosts.',
     icon: FileAltIcon,
+    to: '/files',
   },
   {
     id: 'module-streams',
     title: 'Module streams',
     description: 'Application streams and module metadata.',
     icon: BlueprintIcon,
+    to: '/module-streams',
   },
   {
     id: 'deb',
     title: 'Deb packages',
     description: 'Debian packages synced from upstream repositories.',
     icon: DatabaseIcon,
+    to: '/deb-packages',
   },
   {
     id: 'errata',
@@ -82,12 +85,14 @@ const CONTENT_TYPES: ContentTypeItem[] = [
     title: 'Ansible collections',
     description: 'Automation content for Ansible and Ansible Tower.',
     icon: AnsibleTowerIcon,
+    to: '/ansible-collections',
   },
   {
-    id: 'other',
-    title: 'Other content types',
-    description: 'Additional or custom repository content types.',
+    id: 'python-packages',
+    title: 'Python packages',
+    description: 'Python packages from PyPI and internal repositories.',
     icon: ThIcon,
+    to: '/python-packages',
   },
 ];
 

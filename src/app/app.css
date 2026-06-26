@@ -24,3 +24,17 @@ body,
   border-block-end: none;
   box-shadow: none;
 }
+
+/* Bookmark MenuToggle: 16px padding around icon+caret */
+.app-template-search-bookmark-toggle.pf-v5-c-menu-toggle {
+  padding-inline: var(--pf-v5-global--spacer--md, 16px);
+}
+.app-template-search-bookmark-toggle.pf-v5-c-menu-toggle .pf-v5-c-menu-toggle__controls {
+  padding-inline: var(--pf-v5-global--spacer--xs, 0.25rem);
+}
+
+/* If the boxed input-group item still clips the toggle top edge, draw the same top line as the control arrow */
+.app-template-search-bookmark-slot .app-template-search-bookmark-toggle.pf-v5-c-menu-toggle {
+  border-block-start: 1px solid
+    var(--pf-v5-global--BorderColor--100, var(--pf-global--BorderColor--100, #d2d2d2));
+}

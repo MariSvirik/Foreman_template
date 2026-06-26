@@ -16,6 +16,15 @@ import { ErrataIndex } from '@app/Errata/ErrataIndex';
 import { ErrataDetail } from '@app/Errata/ErrataDetail';
 import { PackageDetail } from '@app/Packages/PackageDetail';
 import { Packages } from '@app/Packages/Packages';
+import { DebPackages } from '@app/DebPackages/DebPackages';
+import { FilesIndex } from '@app/Files/FilesIndex';
+import { FileDetail } from '@app/Files/FileDetail';
+import { ModuleStreams } from '@app/ModuleStreams/ModuleStreams';
+import { ModuleStreamDetail } from '@app/ModuleStreams/ModuleStreamDetail';
+import { AnsibleCollections } from '@app/AnsibleCollections/AnsibleCollections';
+import { AnsibleCollectionDetail } from '@app/AnsibleCollections/AnsibleCollectionDetail';
+import { PythonPackages } from '@app/PythonPackages/PythonPackages';
+import { Subscriptions } from '@app/Subscriptions/Subscriptions';
 import { NotFound } from '@app/NotFound/NotFound';
 
 export interface IAppRoute {
@@ -58,6 +67,13 @@ const routes: AppRouteConfig[] = [
     title: 'PatternFly Seed | Content Types',
   },
   {
+    element: <Subscriptions />,
+    exact: true,
+    label: 'Subscriptions',
+    path: '/subscriptions',
+    title: 'PatternFly Seed | Subscriptions',
+  },
+  {
     element: <ErrataIndex />,
     exact: true,
     path: '/errata',
@@ -80,6 +96,54 @@ const routes: AppRouteConfig[] = [
     exact: true,
     path: '/packages/:packageId',
     title: 'PatternFly Seed | Package detail',
+  },
+  {
+    element: <DebPackages />,
+    exact: true,
+    path: '/deb-packages',
+    title: 'PatternFly Seed | Deb Packages',
+  },
+  {
+    element: <FilesIndex />,
+    exact: true,
+    path: '/files',
+    title: 'PatternFly Seed | Files',
+  },
+  {
+    element: <FileDetail />,
+    exact: true,
+    path: '/files/:fileId',
+    title: 'PatternFly Seed | File Detail',
+  },
+  {
+    element: <ModuleStreams />,
+    exact: true,
+    path: '/module-streams',
+    title: 'PatternFly Seed | Module Streams',
+  },
+  {
+    element: <ModuleStreamDetail />,
+    exact: true,
+    path: '/module-streams/:moduleStreamId',
+    title: 'PatternFly Seed | Module Stream Detail',
+  },
+  {
+    element: <AnsibleCollections />,
+    exact: true,
+    path: '/ansible-collections',
+    title: 'PatternFly Seed | Ansible Collections',
+  },
+  {
+    element: <AnsibleCollectionDetail />,
+    exact: true,
+    path: '/ansible-collections/:collectionId',
+    title: 'PatternFly Seed | Ansible Collection Detail',
+  },
+  {
+    element: <PythonPackages />,
+    exact: true,
+    path: '/python-packages',
+    title: 'PatternFly Seed | Python Packages',
   },
   {
     element: <ProductDetail />,
@@ -113,13 +177,6 @@ const routes: AppRouteConfig[] = [
     title: 'PatternFly Seed | Template detail',
   },
   {
-    element: <PowerPuffGirl />,
-    exact: true,
-    label: 'PowerPuffGirl3.0-Everythingnice.com',
-    path: '/powerpuffgirl',
-    title: 'PatternFly Seed | PowerPuffGirl3.0-Everythingnice.com',
-  },
-  {
     element: <AddToContainerfile />,
     exact: true,
     path: '/powerpuffgirl/add-to-containerfile',
@@ -128,6 +185,13 @@ const routes: AppRouteConfig[] = [
   {
     label: 'Other projects',
     routes: [
+      {
+        element: <PowerPuffGirl />,
+        exact: true,
+        label: 'PowerPuffGirl3.0-Everythingnice.com',
+        path: '/powerpuffgirl',
+        title: 'PatternFly Seed | PowerPuffGirl3.0-Everythingnice.com',
+      },
       {
         element: <CreateHost />,
         exact: true,

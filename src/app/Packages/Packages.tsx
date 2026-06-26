@@ -35,7 +35,6 @@ import { useNavigate } from 'react-router-dom';
 const spacingL = 'var(--pf-v5-global--spacer--l, var(--pf-global--spacer--lg, 24px))';
 const spacingMd = 'var(--pf-v5-global--spacer--md, var(--pf-global--spacer--md, 16px))';
 const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global--BackgroundColor--100, #fff))';
-const rowAltBg = 'var(--pf-v5-global--BackgroundColor--150, var(--pf-global--BackgroundColor--150, #f2f2f2))';
 
 const REPOSITORY_OPTIONS = ['All repositories', 'BaseOS', 'AppStream', 'Custom RPM'] as const;
 
@@ -241,7 +240,6 @@ const Packages: React.FunctionComponent = () => {
           aria-label="Packages"
           variant="compact"
           borders
-          isStriped
           ouiaId="packages-table"
           style={{ marginBottom: 0 }}
         >
@@ -249,7 +247,7 @@ const Packages: React.FunctionComponent = () => {
             <Tr>
               <Th>RPM package</Th>
               <Th>Summary</Th>
-              <Th>Content host counts</Th>
+              <Th>Hosts</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -263,9 +261,7 @@ const Packages: React.FunctionComponent = () => {
               filtered.map((row, index) => (
                 <Tr
                   key={row.id}
-                  style={{
-                    backgroundColor: index % 2 === 1 ? rowAltBg : undefined,
-                  }}
+                  isStriped={index % 2 === 1}
                 >
                   <Td dataLabel="RPM package">
                     <Button
@@ -279,7 +275,7 @@ const Packages: React.FunctionComponent = () => {
                     </Button>
                   </Td>
                   <Td dataLabel="Summary">{row.summary}</Td>
-                  <Td dataLabel="Content host counts">{hostCountsLabel(row)}</Td>
+                  <Td dataLabel="Hosts">{hostCountsLabel(row)}</Td>
                 </Tr>
               ))
             )}

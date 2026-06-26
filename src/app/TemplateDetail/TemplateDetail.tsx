@@ -4,9 +4,20 @@ import {
   BreadcrumbItem,
   Button,
   Checkbox,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
   Dropdown,
   DropdownItem,
   DropdownList,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateHeader,
+  EmptyStateIcon,
+  EmptyStateVariant,
+  Flex,
+  Label,
   Level,
   LevelItem,
   MenuToggle,
@@ -26,7 +37,7 @@ import {
 import { css } from '@patternfly/react-styles';
 import tabStyles from '@patternfly/react-styles/css/components/Tabs/tabs.mjs';
 import tabContentStyles from '@patternfly/react-styles/css/components/TabContent/tab-content.mjs';
-import { EllipsisVIcon } from '@patternfly/react-icons';
+import { CubesIcon, EllipsisVIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -36,12 +47,12 @@ const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global
 
 const TAB_IDS = {
   items: 'template-detail-tab-items',
-  details: 'template-detail-tab-details',
+  empty: 'template-detail-tab-empty',
 } as const;
 
 const PANEL_IDS = {
   items: 'template-detail-panel-items',
-  details: 'template-detail-panel-details',
+  empty: 'template-detail-panel-empty',
 } as const;
 
 type TemplateRow = {
@@ -53,7 +64,7 @@ type TemplateRow = {
 
 const MOCK_ROWS: TemplateRow[] = [
   { id: '1', name: 'alpha-service', status: 'Running', lastModified: '2026-04-01 14:22 UTC' },
-  { id: '2', name: 'beta-worker', status: 'Stopped', lastModified: '2026-03-28 09:05 UTC' },
+  { id: '2', name: 'Without search', status: 'Stopped', lastModified: '2026-03-28 09:05 UTC' },
   { id: '3', name: 'gamma-api', status: 'Running', lastModified: '2026-04-06 11:40 UTC' },
   { id: '4', name: 'delta-cache', status: 'Pending', lastModified: '2026-04-05 16:18 UTC' },
   { id: '5', name: 'epsilon-jobs', status: 'Failed', lastModified: '2026-03-30 22:11 UTC' },
@@ -71,7 +82,10 @@ const TemplateDetail: React.FunctionComponent = () => {
   const navigate = useNavigate();
   const displayName = templateId ? decodeURIComponent(templateId) : 'Template';
 
-  const [activeTabKey, setActiveTabKey] = React.useState<'items' | 'details'>('items');
+  const hideSearch = displayName === 'Without search';
+  const isDetailedExample = displayName === 'Example with more details';
+
+  const [activeTabKey, setActiveTabKey] = React.useState<'items' | 'empty'>('items');
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(5);
@@ -145,115 +159,118 @@ const TemplateDetail: React.FunctionComponent = () => {
       style={{
         paddingLeft: spacingL,
         paddingRight: spacingL,
+        paddingTop: hideSearch ? spacingMd : undefined,
         boxSizing: 'border-box',
       }}
     >
-      <Toolbar
-        id="template-detail-toolbar"
-        ouiaId="template-detail-toolbar"
-        inset={{ default: 'insetNone' }}
-        style={{ marginBottom: 0, paddingLeft: 0, paddingRight: 0 }}
-      >
-        <ToolbarContent>
-          <ToolbarGroup>
-            <ToolbarItem>
-              <Dropdown
-                isOpen={bulkOpen}
-                onSelect={() => setBulkOpen(false)}
-                onOpenChange={setBulkOpen}
-                toggle={(toggleRef) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    onClick={() => setBulkOpen(!bulkOpen)}
-                    isExpanded={bulkOpen}
-                    splitButtonOptions={{
-                      items: [
-                        <MenuToggleCheckbox
-                          key="bulk"
-                          id="template-detail-bulk"
-                          aria-label="Select all"
-                          isChecked={bulkCheck}
-                          onChange={(checked) => selectAllFiltered(checked)}
-                        />,
-                      ],
-                    }}
-                    aria-label="Bulk select"
-                  />
-                )}
-                popperProps={{ appendTo: () => document.body }}
-              >
-                <DropdownList>
-                  <DropdownItem key="none" onClick={() => selectAllFiltered(false)}>
-                    Select none ({filtered.length} items)
-                  </DropdownItem>
-                  <DropdownItem key="page" onClick={() => selectPage()}>
-                    Select page ({slice.length} items)
-                  </DropdownItem>
-                  <DropdownItem key="all" onClick={() => selectAllFiltered(true)}>
-                    Select all ({filtered.length} items)
-                  </DropdownItem>
-                </DropdownList>
-              </Dropdown>
-            </ToolbarItem>
-            <ToolbarItem>
-              <SearchInput
-                placeholder="Search by name or status…"
-                value={search}
-                onChange={(_e, v) => {
-                  setSearch(v);
-                  setPage(1);
-                }}
-                onClear={() => setSearch('')}
-                aria-label="Search table"
-              />
-            </ToolbarItem>
-            <ToolbarItem>
-              <Button variant="primary">Create item</Button>
-            </ToolbarItem>
-            <ToolbarItem>
-              <Dropdown
-                isOpen={createActionsOpen}
-                onSelect={() => setCreateActionsOpen(false)}
-                onOpenChange={setCreateActionsOpen}
-                toggle={(toggleRef) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    variant="plain"
-                    onClick={() => setCreateActionsOpen(!createActionsOpen)}
-                    isExpanded={createActionsOpen}
-                    aria-label="Create item actions"
-                  >
-                    <EllipsisVIcon />
-                  </MenuToggle>
-                )}
-                popperProps={{ appendTo: () => document.body }}
-              >
-                <DropdownList>
-                  <DropdownItem key="import">Import items</DropdownItem>
-                  <DropdownItem key="template">Use a template</DropdownItem>
-                </DropdownList>
-              </Dropdown>
-            </ToolbarItem>
-          </ToolbarGroup>
-          <ToolbarGroup align={{ default: 'alignRight' }}>
-            <ToolbarItem>
-              <Pagination
-                itemCount={itemCount}
-                perPage={perPage}
-                page={safePage}
-                onSetPage={(_e, nextPage) => setPage(nextPage)}
-                onPerPageSelect={(_e, nextPerPage) => {
-                  setPerPage(nextPerPage);
-                  setPage(1);
-                }}
-                variant={PaginationVariant.top}
-                isCompact
-                ouiaId="template-detail-pagination-top"
-              />
-            </ToolbarItem>
-          </ToolbarGroup>
-        </ToolbarContent>
-      </Toolbar>
+      {!hideSearch && (
+        <Toolbar
+          id="template-detail-toolbar"
+          ouiaId="template-detail-toolbar"
+          inset={{ default: 'insetNone' }}
+          style={{ marginBottom: 0, paddingLeft: 0, paddingRight: 0 }}
+        >
+          <ToolbarContent>
+            <ToolbarGroup>
+              <ToolbarItem>
+                <Dropdown
+                  isOpen={bulkOpen}
+                  onSelect={() => setBulkOpen(false)}
+                  onOpenChange={setBulkOpen}
+                  toggle={(toggleRef) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      onClick={() => setBulkOpen(!bulkOpen)}
+                      isExpanded={bulkOpen}
+                      splitButtonOptions={{
+                        items: [
+                          <MenuToggleCheckbox
+                            key="bulk"
+                            id="template-detail-bulk"
+                            aria-label="Select all"
+                            isChecked={bulkCheck}
+                            onChange={(checked) => selectAllFiltered(checked)}
+                          />,
+                        ],
+                      }}
+                      aria-label="Bulk select"
+                    />
+                  )}
+                  popperProps={{ appendTo: () => document.body }}
+                >
+                  <DropdownList>
+                    <DropdownItem key="none" onClick={() => selectAllFiltered(false)}>
+                      Select none ({filtered.length} items)
+                    </DropdownItem>
+                    <DropdownItem key="page" onClick={() => selectPage()}>
+                      Select page ({slice.length} items)
+                    </DropdownItem>
+                    <DropdownItem key="all" onClick={() => selectAllFiltered(true)}>
+                      Select all ({filtered.length} items)
+                    </DropdownItem>
+                  </DropdownList>
+                </Dropdown>
+              </ToolbarItem>
+              <ToolbarItem>
+                <SearchInput
+                  placeholder="Search by name or status…"
+                  value={search}
+                  onChange={(_e, v) => {
+                    setSearch(v);
+                    setPage(1);
+                  }}
+                  onClear={() => setSearch('')}
+                  aria-label="Search table"
+                />
+              </ToolbarItem>
+              <ToolbarItem>
+                <Button variant="primary">Create item</Button>
+              </ToolbarItem>
+              <ToolbarItem>
+                <Dropdown
+                  isOpen={createActionsOpen}
+                  onSelect={() => setCreateActionsOpen(false)}
+                  onOpenChange={setCreateActionsOpen}
+                  toggle={(toggleRef) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      variant="plain"
+                      onClick={() => setCreateActionsOpen(!createActionsOpen)}
+                      isExpanded={createActionsOpen}
+                      aria-label="Create item actions"
+                    >
+                      <EllipsisVIcon />
+                    </MenuToggle>
+                  )}
+                  popperProps={{ appendTo: () => document.body }}
+                >
+                  <DropdownList>
+                    <DropdownItem key="import">Import items</DropdownItem>
+                    <DropdownItem key="template">Use a template</DropdownItem>
+                  </DropdownList>
+                </Dropdown>
+              </ToolbarItem>
+            </ToolbarGroup>
+            <ToolbarGroup align={{ default: 'alignRight' }}>
+              <ToolbarItem>
+                <Pagination
+                  itemCount={itemCount}
+                  perPage={perPage}
+                  page={safePage}
+                  onSetPage={(_e, nextPage) => setPage(nextPage)}
+                  onPerPageSelect={(_e, nextPerPage) => {
+                    setPerPage(nextPerPage);
+                    setPage(1);
+                  }}
+                  variant={PaginationVariant.top}
+                  isCompact
+                  ouiaId="template-detail-pagination-top"
+                />
+              </ToolbarItem>
+            </ToolbarGroup>
+          </ToolbarContent>
+        </Toolbar>
+      )}
 
       <Table
         aria-label="Template detail data"
@@ -265,25 +282,27 @@ const TemplateDetail: React.FunctionComponent = () => {
       >
         <Thead>
           <Tr>
-            <Th screenReaderText="Row select" style={cellTightCheckbox} />
-            <Th style={cellTightName}>Name</Th>
+            {!hideSearch && <Th screenReaderText="Row select" style={cellTightCheckbox} />}
+            <Th style={hideSearch ? undefined : cellTightName}>Name</Th>
             <Th>Status</Th>
             <Th>Last modified</Th>
-            <Th screenReaderText="Actions" />
+            {!hideSearch && <Th screenReaderText="Actions" />}
           </Tr>
         </Thead>
         <Tbody>
           {slice.map((row) => (
             <Tr key={row.id}>
-              <Td dataLabel="Select row" style={cellTightCheckbox}>
-                <Checkbox
-                  isChecked={selected.has(row.id)}
-                  onChange={(_e, c) => toggleRow(row.id, Boolean(c))}
-                  aria-label={`Select ${row.name}`}
-                  id={`template-detail-select-${row.id}`}
-                />
-              </Td>
-              <Td dataLabel="Name" style={cellTightName}>
+              {!hideSearch && (
+                <Td dataLabel="Select row" style={cellTightCheckbox}>
+                  <Checkbox
+                    isChecked={selected.has(row.id)}
+                    onChange={(_e, c) => toggleRow(row.id, Boolean(c))}
+                    aria-label={`Select ${row.name}`}
+                    id={`template-detail-select-${row.id}`}
+                  />
+                </Td>
+              )}
+              <Td dataLabel="Name" style={hideSearch ? undefined : cellTightName}>
                 <Button
                   variant="link"
                   isInline
@@ -294,59 +313,63 @@ const TemplateDetail: React.FunctionComponent = () => {
               </Td>
               <Td dataLabel="Status">{row.status}</Td>
               <Td dataLabel="Last modified">{row.lastModified}</Td>
-              <Td isActionCell>
-                <Dropdown
-                  isOpen={openActionId === row.id}
-                  onOpenChange={(open) => setOpenActionId(open ? row.id : null)}
-                  toggle={(toggleRef) => (
-                    <MenuToggle
-                      ref={toggleRef}
-                      variant="plain"
-                      onClick={() => setOpenActionId(openActionId === row.id ? null : row.id)}
-                      isExpanded={openActionId === row.id}
-                      aria-label={`Actions for ${row.name}`}
-                    >
-                      <EllipsisVIcon />
-                    </MenuToggle>
-                  )}
-                  popperProps={{ appendTo: () => document.body }}
-                >
-                  <DropdownList>
-                    <DropdownItem key="view">View</DropdownItem>
-                    <DropdownItem key="edit">Edit</DropdownItem>
-                    <DropdownItem key="del" isDanger>
-                      Delete
-                    </DropdownItem>
-                  </DropdownList>
-                </Dropdown>
-              </Td>
+              {!hideSearch && (
+                <Td isActionCell>
+                  <Dropdown
+                    isOpen={openActionId === row.id}
+                    onOpenChange={(open) => setOpenActionId(open ? row.id : null)}
+                    toggle={(toggleRef) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        variant="plain"
+                        onClick={() => setOpenActionId(openActionId === row.id ? null : row.id)}
+                        isExpanded={openActionId === row.id}
+                        aria-label={`Actions for ${row.name}`}
+                      >
+                        <EllipsisVIcon />
+                      </MenuToggle>
+                    )}
+                    popperProps={{ appendTo: () => document.body }}
+                  >
+                    <DropdownList>
+                      <DropdownItem key="view">View</DropdownItem>
+                      <DropdownItem key="edit">Edit</DropdownItem>
+                      <DropdownItem key="del" isDanger>
+                        Delete
+                      </DropdownItem>
+                    </DropdownList>
+                  </Dropdown>
+                </Td>
+              )}
             </Tr>
           ))}
         </Tbody>
       </Table>
 
-      <Pagination
-        itemCount={itemCount}
-        perPage={perPage}
-        page={safePage}
-        onSetPage={(_e, nextPage) => setPage(nextPage)}
-        onPerPageSelect={(_e, nextPerPage) => {
-          setPerPage(nextPerPage);
-          setPage(1);
-        }}
-        variant={PaginationVariant.bottom}
-        isStatic
-        isCompact
-        ouiaId="template-detail-pagination-bottom"
-        style={{
-          marginTop: 0,
-          paddingTop: spacingMd,
-          paddingBlockStart: spacingMd,
-          paddingLeft: 0,
-          paddingRight: 0,
-          paddingInline: 0,
-        }}
-      />
+      {!hideSearch && (
+        <Pagination
+          itemCount={itemCount}
+          perPage={perPage}
+          page={safePage}
+          onSetPage={(_e, nextPage) => setPage(nextPage)}
+          onPerPageSelect={(_e, nextPerPage) => {
+            setPerPage(nextPerPage);
+            setPage(1);
+          }}
+          variant={PaginationVariant.bottom}
+          isStatic
+          isCompact
+          ouiaId="template-detail-pagination-bottom"
+          style={{
+            marginTop: 0,
+            paddingTop: spacingMd,
+            paddingBlockStart: spacingMd,
+            paddingLeft: 0,
+            paddingRight: 0,
+            paddingInline: 0,
+          }}
+        />
+      )}
     </div>
   );
 
@@ -379,7 +402,7 @@ const TemplateDetail: React.FunctionComponent = () => {
         </Breadcrumb>
       </div>
 
-      {/* 2. Title section (spacing unchanged: 16px top/bottom, 24px sides) */}
+      {/* 2. Title section */}
       <div
         style={{
           paddingTop: spacingMd,
@@ -395,16 +418,80 @@ const TemplateDetail: React.FunctionComponent = () => {
               <Title headingLevel="h1" size="2xl">
                 {displayName}
               </Title>
-              <Text component="p">
-                Summary and status for this template. Use the items tab to review child resources, or open
-                details for metadata and activity.
-              </Text>
+              {!isDetailedExample && (
+                <Text component="p">
+                  Summary and status for this template. Use the items tab to review child resources, or open
+                  details for metadata and activity.
+                </Text>
+              )}
             </TextContent>
           </LevelItem>
           <LevelItem>
             <Button variant="secondary">Edit</Button>
           </LevelItem>
         </Level>
+
+        {isDetailedExample && (
+          <div style={{ marginTop: spacingMd }}>
+            <Flex
+              flexWrap={{ default: 'wrap' }}
+              alignItems={{ default: 'alignItemsFlexStart' }}
+              style={{ gap: '14px' }}
+            >
+              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Status</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Label color="green">Running</Label>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Type</DescriptionListTerm>
+                  <DescriptionListDescription>Service template</DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Owner</DescriptionListTerm>
+                  <DescriptionListDescription>admin@example.com</DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Created</DescriptionListTerm>
+                  <DescriptionListDescription>Jan 15, 2026</DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Last modified</DescriptionListTerm>
+                  <DescriptionListDescription>Apr 7, 2026</DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            </Flex>
+
+            <DescriptionList style={{ marginTop: '14px' }}>
+              <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Environment</DescriptionListTerm>
+                <DescriptionListDescription>Production / us-east-1</DescriptionListDescription>
+              </DescriptionListGroup>
+            </DescriptionList>
+
+            <DescriptionList style={{ marginTop: '14px' }}>
+              <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Description</DescriptionListTerm>
+                <DescriptionListDescription>
+                  This template provides a standardized configuration for deploying containerized microservices
+                  in a production environment. It includes health checks, resource limits, auto-scaling policies,
+                  and network ingress rules. Use the items tab to review child resources or the details tab for
+                  metadata and audit history.
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+            </DescriptionList>
+          </div>
+        )}
       </div>
 
       {/* 3. Tabs section — tab list only (not the table); PF tabs visuals */}
@@ -436,20 +523,20 @@ const TemplateDetail: React.FunctionComponent = () => {
               </button>
             </li>
             <li
-              className={css(tabStyles.tabsItem, activeTabKey === 'details' && tabStyles.modifiers.current)}
+              className={css(tabStyles.tabsItem, activeTabKey === 'empty' && tabStyles.modifiers.current)}
               role="presentation"
             >
               <button
                 type="button"
-                id={TAB_IDS.details}
+                id={TAB_IDS.empty}
                 className={css(tabStyles.tabsLink)}
                 role="tab"
-                aria-selected={activeTabKey === 'details'}
-                aria-controls={PANEL_IDS.details}
-                tabIndex={activeTabKey === 'details' ? 0 : -1}
-                onClick={() => setActiveTabKey('details')}
+                aria-selected={activeTabKey === 'empty'}
+                aria-controls={PANEL_IDS.empty}
+                tabIndex={activeTabKey === 'empty' ? 0 : -1}
+                onClick={() => setActiveTabKey('empty')}
               >
-                <span className={css(tabStyles.tabsItemText)}>Details</span>
+                <span className={css(tabStyles.tabsItemText)}>Empty example</span>
               </button>
             </li>
           </ul>
@@ -476,18 +563,24 @@ const TemplateDetail: React.FunctionComponent = () => {
         </section>
 
         <section
-          id={PANEL_IDS.details}
+          id={PANEL_IDS.empty}
           role="tabpanel"
-          aria-labelledby={TAB_IDS.details}
+          aria-labelledby={TAB_IDS.empty}
           className={css(tabContentStyles.tabContent)}
-          style={{ paddingLeft: spacingL, paddingRight: spacingL }}
-          hidden={activeTabKey !== 'details'}
+          style={{ paddingLeft: spacingL, paddingRight: spacingL, paddingTop: spacingL }}
+          hidden={activeTabKey !== 'empty'}
           tabIndex={0}
         >
-          <Text component="p">
-            Additional detail content for <strong>{displayName}</strong> can be placed here (forms,
-            description lists, or related links).
-          </Text>
+          <EmptyState variant={EmptyStateVariant.lg}>
+            <EmptyStateHeader
+              titleText="No items to display yet"
+              headingLevel="h4"
+              icon={<EmptyStateIcon icon={CubesIcon} />}
+            />
+            <EmptyStateBody>
+              This section is currently empty. Items will appear here once they are available.
+            </EmptyStateBody>
+          </EmptyState>
         </section>
       </div>
     </PageSection>

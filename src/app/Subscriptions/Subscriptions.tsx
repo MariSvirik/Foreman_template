@@ -17,23 +17,26 @@ import {
   PageSection,
   Pagination,
   PaginationVariant,
+  Popover,
   SearchInput,
-  Text,
   TextContent,
   Title,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
   ToolbarItem,
+  Tooltip,
 } from '@patternfly/react-core';
-import { BulkSelect, BulkSelectValue } from '@patternfly/react-component-groups/dist/esm/BulkSelect';
 import {
   ColumnsIcon,
   EllipsisVIcon,
+  ExportIcon,
+  ExternalLinkAltIcon,
   OutlinedBookmarkIcon,
+  OutlinedQuestionCircleIcon,
 } from '@patternfly/react-icons';
+import { BulkSelect, BulkSelectValue } from '@patternfly/react-component-groups/dist/esm/BulkSelect';
 import {
-  ExpandableRowContent,
   Table,
   Tbody,
   Td,
@@ -41,7 +44,7 @@ import {
   Thead,
   Tr,
 } from '@patternfly/react-table';
-import { useNavigate } from 'react-router-dom';
+import { MOCK_SUBSCRIPTIONS } from './subscriptionData';
 
 const spacingL = 'var(--pf-v5-global--spacer--l, var(--pf-global--spacer--lg, 24px))';
 const spacingMd = 'var(--pf-v5-global--spacer--md, var(--pf-global--spacer--md, 16px))';
@@ -49,52 +52,37 @@ const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global
 
 const thNowrap: React.CSSProperties = { whiteSpace: 'nowrap' };
 
-type TableColumnId = 'name' | 'status' | 'lastModified';
+type TableColumnId = 'name' | 'type' | 'sku' | 'contract' | 'startDate' | 'endDate' | 'requiresVirtWho' | 'entitlements' | 'hosts';
 
 const TABLE_COLUMN_OPTIONS: { id: TableColumnId; label: string }[] = [
   { id: 'name', label: 'Name' },
-  { id: 'status', label: 'Status' },
-  { id: 'lastModified', label: 'Last modified' },
+  { id: 'type', label: 'Type' },
+  { id: 'sku', label: 'SKU' },
+  { id: 'contract', label: 'Contract' },
+  { id: 'startDate', label: 'Start date' },
+  { id: 'endDate', label: 'End date' },
+  { id: 'requiresVirtWho', label: 'Requires Virt-Who' },
+  { id: 'entitlements', label: 'Entitlements' },
+  { id: 'hosts', label: 'Hosts' },
 ];
 
 const DEFAULT_COLUMN_VISIBILITY: Record<TableColumnId, boolean> = {
   name: true,
-  status: true,
-  lastModified: true,
+  type: true,
+  sku: true,
+  contract: true,
+  startDate: true,
+  endDate: true,
+  requiresVirtWho: true,
+  entitlements: true,
+  hosts: true,
 };
 
-type TemplateRow = {
-  id: string;
-  name: string;
-  status: string;
-  lastModified: string;
-  detail: string;
-};
-
-const MOCK_ROWS: TemplateRow[] = [
-  { id: '1', name: 'alpha-service', status: 'Running', lastModified: '2026-04-01 14:22 UTC', detail: 'Deployment template for the alpha API service.' },
-  { id: '2', name: 'Without search', status: 'Stopped', lastModified: '2026-03-28 09:05 UTC', detail: 'Template detail variant without search toolbars.' },
-  { id: '13', name: 'Example with more details', status: 'Running', lastModified: '2026-04-08 10:15 UTC', detail: 'Template detail variant with Errata-style description list items.' },
-  { id: '3', name: 'gamma-api', status: 'Running', lastModified: '2026-04-06 11:40 UTC', detail: 'REST API gateway configuration.' },
-  { id: '4', name: 'delta-cache', status: 'Pending', lastModified: '2026-04-05 16:18 UTC', detail: 'Redis-backed cache layer.' },
-  { id: '5', name: 'epsilon-jobs', status: 'Failed', lastModified: '2026-03-30 22:11 UTC', detail: 'Scheduled job runner template.' },
-  { id: '6', name: 'zeta-stream', status: 'Running', lastModified: '2026-04-02 08:00 UTC', detail: 'Event stream consumer.' },
-  { id: '7', name: 'eta-gateway', status: 'Stopped', lastModified: '2026-03-25 13:50 UTC', detail: 'Edge routing and TLS termination.' },
-  { id: '8', name: 'theta-index', status: 'Running', lastModified: '2026-04-04 10:33 UTC', detail: 'Search index maintenance.' },
-  { id: '9', name: 'iota-sync', status: 'Pending', lastModified: '2026-04-03 12:00 UTC', detail: 'Cross-cluster sync job.' },
-  { id: '10', name: 'kappa-batch', status: 'Running', lastModified: '2026-03-29 18:45 UTC', detail: 'Nightly batch processing.' },
-  { id: '11', name: 'lambda-edge', status: 'Failed', lastModified: '2026-03-27 09:12 UTC', detail: 'CDN edge function template.' },
-  { id: '12', name: 'mu-storage', status: 'Running', lastModified: '2026-04-07 07:30 UTC', detail: 'Object storage bucket policy.' },
-];
-
-const TemplateIndex: React.FunctionComponent = () => {
-  const navigate = useNavigate();
+const Subscriptions: React.FunctionComponent = () => {
   const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(5);
+  const [perPage, setPerPage] = React.useState(20);
   const [search, setSearch] = React.useState('');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
-  const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
-  const [openActionId, setOpenActionId] = React.useState<string | null>(null);
   const [bookmarkOpen, setBookmarkOpen] = React.useState(false);
   const [toolbarKebabOpen, setToolbarKebabOpen] = React.useState(false);
   const [isManageColumnsModalOpen, setIsManageColumnsModalOpen] = React.useState(false);
@@ -108,9 +96,7 @@ const TemplateIndex: React.FunctionComponent = () => {
     setIsManageColumnsModalOpen(true);
   };
 
-  const closeManageColumnsModal = () => {
-    setIsManageColumnsModalOpen(false);
-  };
+  const closeManageColumnsModal = () => setIsManageColumnsModalOpen(false);
 
   const saveManageColumnsModal = () => {
     setColumnVisibility({ ...draftColumnVisibility });
@@ -125,10 +111,6 @@ const TemplateIndex: React.FunctionComponent = () => {
     });
   };
 
-  const visibleDataColumnCount = TABLE_COLUMN_OPTIONS.filter((c) => columnVisibility[c.id]).length;
-  /** Expand + select + optional data columns + actions (always shown). */
-  const tableBodyColSpan = 2 + visibleDataColumnCount + 1;
-
   const applySavedBookmarkQuery = (query: string) => {
     setSearch(query);
     setPage(1);
@@ -142,10 +124,10 @@ const TemplateIndex: React.FunctionComponent = () => {
         setBookmarkOpen(false);
         break;
       case 'saved-b1':
-        applySavedBookmarkQuery('running');
+        applySavedBookmarkQuery('Physical');
         break;
       case 'saved-b2':
-        applySavedBookmarkQuery('stopped');
+        applySavedBookmarkQuery('CentOS');
         break;
       case 'manage-bookmarks':
         setBookmarkOpen(false);
@@ -165,14 +147,13 @@ const TemplateIndex: React.FunctionComponent = () => {
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) {
-      return MOCK_ROWS;
-    }
-    return MOCK_ROWS.filter(
+    if (!q) return MOCK_SUBSCRIPTIONS;
+    return MOCK_SUBSCRIPTIONS.filter(
       (r) =>
         r.name.toLowerCase().includes(q) ||
-        r.status.toLowerCase().includes(q) ||
-        r.lastModified.toLowerCase().includes(q),
+        r.type.toLowerCase().includes(q) ||
+        r.sku.toLowerCase().includes(q) ||
+        r.entitlements.toLowerCase().includes(q),
     );
   }, [search]);
 
@@ -181,29 +162,21 @@ const TemplateIndex: React.FunctionComponent = () => {
   const slice = filtered.slice((safePage - 1) * perPage, safePage * perPage);
 
   React.useEffect(() => {
-    if (page !== safePage) {
-      setPage(safePage);
-    }
+    if (page !== safePage) setPage(safePage);
   }, [page, safePage]);
 
   const idsOnPage = slice.map((r) => r.id);
   const allOnPageSelected = idsOnPage.length > 0 && idsOnPage.every((id) => selected.has(id));
   const partiallySelected = idsOnPage.some((id) => selected.has(id)) && !allOnPageSelected;
 
-  const selectAllFiltered = () => {
-    setSelected(new Set(filtered.map((r) => r.id)));
-  };
-
-  const clearSelection = () => {
-    setSelected(new Set());
-  };
+  const selectAllFiltered = () => setSelected(new Set(filtered.map((r) => r.id)));
+  const clearSelection = () => setSelected(new Set());
 
   const selectPage = () => {
     const next = new Set(selected);
     idsOnPage.forEach((id) => next.add(id));
     setSelected(next);
   };
-
   const clearPageSelection = () => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -212,9 +185,7 @@ const TemplateIndex: React.FunctionComponent = () => {
     });
   };
 
-  const onBulkSelect = (
-    value: (typeof BulkSelectValue)[keyof typeof BulkSelectValue],
-  ) => {
+  const onBulkSelect = (value: (typeof BulkSelectValue)[keyof typeof BulkSelectValue]) => {
     switch (value) {
       case BulkSelectValue.none:
         clearSelection();
@@ -235,43 +206,17 @@ const TemplateIndex: React.FunctionComponent = () => {
 
   const toggleRow = (id: string, checked: boolean) => {
     const next = new Set(selected);
-    if (checked) {
-      next.add(id);
-    } else {
-      next.delete(id);
-    }
+    if (checked) next.add(id);
+    else next.delete(id);
     setSelected(next);
   };
 
-  const toggleExpand = (id: string, isOpen: boolean) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (isOpen) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  };
-
-  const expandAll = slice.length > 0 && slice.every((r) => expanded.has(r.id));
-
   const itemCount = filtered.length;
-
-  const paginationTitles = {
-    paginationAriaLabel: 'Template list pagination',
-    toFirstPageAriaLabel: 'Go to first page',
-    toLastPageAriaLabel: 'Go to last page',
-    toNextPageAriaLabel: 'Go to next page',
-    toPreviousPageAriaLabel: 'Go to previous page',
-    optionsToggleAriaLabel: 'Items per page',
-    currPageAriaLabel: 'Current page',
-  };
+  const cv = columnVisibility;
 
   return (
     <PageSection
-      aria-label="Template index"
+      aria-label="Subscriptions"
       padding={{ default: 'noPadding' }}
       style={{ backgroundColor: background100 }}
     >
@@ -288,19 +233,37 @@ const TemplateIndex: React.FunctionComponent = () => {
         <Level hasGutter>
           <LevelItem>
             <TextContent>
-              <Title headingLevel="h1" size="2xl">
-                Template
+              <Title headingLevel="h1" size="2xl" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                Subscriptions
+                <Popover
+                  bodyContent={
+                    <div>
+                      This page shows the subscriptions available from this organization&#39;s subscription manifest.
+                      <br />
+                      Learn more about your overall subscription usage with the{' '}
+                      <a href="#" target="_blank" rel="noopener noreferrer">
+                        Subscriptions service
+                      </a>
+                      .
+                    </div>
+                  }
+                  showClose
+                >
+                  <Button
+                    variant="plain"
+                    aria-label="More info about subscriptions"
+                    style={{ padding: 0, fontSize: 'var(--pf-v5-global--FontSize--md, 14px)', verticalAlign: 'middle' }}
+                    icon={<OutlinedQuestionCircleIcon />}
+                  />
+                </Popover>
               </Title>
             </TextContent>
-          </LevelItem>
-          <LevelItem>
-            <Button variant="secondary">Edit</Button>
           </LevelItem>
         </Level>
       </section>
 
       <section
-        aria-label="Template list"
+        aria-label="Subscriptions list"
         style={{
           paddingTop: 0,
           paddingRight: spacingL,
@@ -310,8 +273,8 @@ const TemplateIndex: React.FunctionComponent = () => {
         }}
       >
         <Toolbar
-          id="template-index-toolbar"
-          ouiaId="template-index-toolbar"
+          id="subscriptions-toolbar"
+          ouiaId="subscriptions-toolbar"
           inset={{ default: 'insetNone' }}
           style={{ marginBottom: 0 }}
         >
@@ -319,7 +282,7 @@ const TemplateIndex: React.FunctionComponent = () => {
             <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
               <ToolbarItem>
                 <BulkSelect
-                  ouiaId="template-bulk-select"
+                  ouiaId="subscriptions-bulk-select"
                   isDataPaginated
                   canSelectAll
                   pageCount={slice.length}
@@ -330,7 +293,7 @@ const TemplateIndex: React.FunctionComponent = () => {
                   onSelect={onBulkSelect}
                   popperProps={{ appendTo: () => document.body }}
                   menuToggleCheckboxProps={{
-                    id: 'template-bulk-checkbox',
+                    id: 'subscriptions-bulk-checkbox',
                     'aria-label':
                       selected.size > 0
                         ? `Select rows, ${selected.size} of ${filtered.length} selected`
@@ -353,7 +316,7 @@ const TemplateIndex: React.FunctionComponent = () => {
                         setPage(1);
                       }}
                       onSearch={() => submitSearch()}
-                      aria-label="Search templates"
+                      aria-label="Search subscriptions"
                     />
                   </InputGroupItem>
                   <InputGroupItem>
@@ -376,10 +339,7 @@ const TemplateIndex: React.FunctionComponent = () => {
                       popperProps={{ appendTo: () => document.body }}
                     >
                       <DropdownList>
-                        <DropdownItem
-                          value="bookmark-this-search"
-                          icon={<OutlinedBookmarkIcon />}
-                        >
+                        <DropdownItem value="bookmark-this-search" icon={<OutlinedBookmarkIcon />}>
                           Bookmark this search
                         </DropdownItem>
                         <Divider component="li" />
@@ -401,16 +361,23 @@ const TemplateIndex: React.FunctionComponent = () => {
 
             <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
               <ToolbarItem>
-                <Button variant="primary">Create item</Button>
+                <Button variant="primary">Add subscriptions</Button>
               </ToolbarItem>
               <ToolbarItem style={{ marginLeft: spacingMd }}>
-                <Button
-                  type="button"
-                  variant="plain"
-                  aria-label="Manage columns"
-                  onClick={openManageColumnsModal}
-                  icon={<ColumnsIcon />}
-                />
+                <Button variant="secondary" icon={<ExportIcon />}>
+                  Export CSV
+                </Button>
+              </ToolbarItem>
+              <ToolbarItem style={{ marginLeft: spacingMd }}>
+                <Tooltip content="Manage columns">
+                  <Button
+                    type="button"
+                    variant="plain"
+                    aria-label="Manage columns"
+                    onClick={openManageColumnsModal}
+                    icon={<ColumnsIcon />}
+                  />
+                </Tooltip>
               </ToolbarItem>
               <ToolbarItem>
                 <Dropdown
@@ -431,8 +398,15 @@ const TemplateIndex: React.FunctionComponent = () => {
                   popperProps={{ appendTo: () => document.body }}
                 >
                   <DropdownList>
-                    <DropdownItem key="t1">Toolbar action A</DropdownItem>
-                    <DropdownItem key="t2">Toolbar action B</DropdownItem>
+                    <DropdownItem key="manage-manifest">Manage manifest</DropdownItem>
+                    <DropdownItem key="view-usage">
+                      View subscription usage{' '}
+                      <ExternalLinkAltIcon style={{ marginLeft: '8px', fontSize: '0.85em' }} />
+                    </DropdownItem>
+                    <Divider component="li" key="divider" />
+                    <DropdownItem key="delete" isDisabled={selected.size === 0}>
+                      Delete
+                    </DropdownItem>
                   </DropdownList>
                 </Dropdown>
               </ToolbarItem>
@@ -451,7 +425,7 @@ const TemplateIndex: React.FunctionComponent = () => {
                   }}
                   variant={PaginationVariant.top}
                   isCompact
-                  ouiaId="template-index-pagination-top"
+                  ouiaId="subscriptions-pagination-top"
                 />
               </ToolbarItem>
             </ToolbarGroup>
@@ -459,122 +433,65 @@ const TemplateIndex: React.FunctionComponent = () => {
         </Toolbar>
 
         <Table
-          aria-label="Template data"
+          aria-label="Subscriptions data"
           variant="compact"
           borders
-          ouiaId="template-index-table"
-          className="app-table-expand-header-caret app-table-expand-no-middle-rule"
-          isExpandable
-          style={{ marginBottom: 0, width: '100%' }}
+          ouiaId="subscriptions-table"
+          isStriped
+          style={{ marginBottom: 0, width: '100%', tableLayout: 'fixed' }}
         >
+          <colgroup>
+            <col style={{ width: '45px' }} />
+            {cv.name && <col style={{ width: '14%' }} />}
+            {cv.type && <col style={{ width: '8%' }} />}
+            {cv.sku && <col style={{ width: '12%' }} />}
+            {cv.contract && <col style={{ width: '10%' }} />}
+            {cv.startDate && <col style={{ width: '11%' }} />}
+            {cv.endDate && <col style={{ width: '11%' }} />}
+            {cv.requiresVirtWho && <col style={{ width: '13%' }} />}
+            {cv.entitlements && <col style={{ width: '10%' }} />}
+            {cv.hosts && <col style={{ width: '7%' }} />}
+          </colgroup>
           <Thead>
             <Tr>
-              <Th
-                screenReaderText="Expand row"
-                expand={
-                  slice.length > 0
-                    ? {
-                        areAllExpanded: expandAll,
-                        onToggle: (_e, _rowIndex, allExpandedOnPage) => {
-                          if (allExpandedOnPage) {
-                            setExpanded((prev) => {
-                              const next = new Set(prev);
-                              slice.forEach((r) => next.delete(r.id));
-                              return next;
-                            });
-                          } else {
-                            setExpanded((prev) => {
-                              const next = new Set(prev);
-                              slice.forEach((r) => next.add(r.id));
-                              return next;
-                            });
-                          }
-                        },
-                        collapseAllAriaLabel: 'Collapse all rows',
-                      }
-                    : undefined
-                }
-              />
               <Th screenReaderText="Select row" />
-              {columnVisibility.name ? <Th style={thNowrap}>Name</Th> : null}
-              {columnVisibility.status ? <Th style={thNowrap}>Status</Th> : null}
-              {columnVisibility.lastModified ? (
-                <Th style={{ ...thNowrap, minWidth: '11rem' }}>Last modified</Th>
-              ) : null}
-              <Th screenReaderText="Actions" />
+              {cv.name && <Th style={thNowrap}>Name</Th>}
+              {cv.type && <Th style={thNowrap}>Type</Th>}
+              {cv.sku && <Th style={thNowrap}>SKU</Th>}
+              {cv.contract && <Th style={thNowrap}>Contract</Th>}
+              {cv.startDate && <Th style={thNowrap}>Start date</Th>}
+              {cv.endDate && <Th style={thNowrap}>End date</Th>}
+              {cv.requiresVirtWho && <Th style={thNowrap}>Requires Virt-Who</Th>}
+              {cv.entitlements && <Th style={thNowrap}>Entitlements</Th>}
+              {cv.hosts && <Th style={thNowrap}>Hosts</Th>}
             </Tr>
           </Thead>
           <Tbody>
-            {slice.map((row, rowIndex) => {
-              const isEx = expanded.has(row.id);
-              return (
-                <React.Fragment key={row.id}>
-                  <Tr isExpanded={isEx ? true : undefined} isStriped={rowIndex % 2 === 1}>
-                    <Td
-                      expand={{
-                        isExpanded: isEx,
-                        rowIndex,
-                        onToggle: (_e, _rIdx, isOpen) => toggleExpand(row.id, isOpen),
-                      }}
-                    />
-                    <Td
-                      select={{
-                        rowIndex,
-                        onSelect: (_e, isSelected) => toggleRow(row.id, isSelected),
-                        isSelected: selected.has(row.id),
-                        variant: 'checkbox',
-                      }}
-                    />
-                    {columnVisibility.name ? (
-                      <Td dataLabel="Name">
-                        <Button
-                          variant="link"
-                          isInline
-                          onClick={() => navigate(`/template/${encodeURIComponent(row.name)}`)}
-                        >
-                          {row.name}
-                        </Button>
-                      </Td>
-                    ) : null}
-                    {columnVisibility.status ? <Td dataLabel="Status">{row.status}</Td> : null}
-                    {columnVisibility.lastModified ? (
-                      <Td dataLabel="Last modified">{row.lastModified}</Td>
-                    ) : null}
-                    <Td isActionCell>
-                      <Dropdown
-                        isOpen={openActionId === row.id}
-                        onOpenChange={(open) => setOpenActionId(open ? row.id : null)}
-                        toggle={(toggleRef) => (
-                          <MenuToggle
-                            ref={toggleRef}
-                            variant="plain"
-                            onClick={() => setOpenActionId(openActionId === row.id ? null : row.id)}
-                            isExpanded={openActionId === row.id}
-                            aria-label={`Actions for ${row.name}`}
-                          >
-                            <EllipsisVIcon />
-                          </MenuToggle>
-                        )}
-                        popperProps={{ appendTo: () => document.body }}
-                      >
-                        <DropdownList>
-                          <DropdownItem key="a1">Action 1</DropdownItem>
-                          <DropdownItem key="a2">Action 2</DropdownItem>
-                          <DropdownItem key="a3">Action 3</DropdownItem>
-                        </DropdownList>
-                      </Dropdown>
-                    </Td>
-                  </Tr>
-                  <Tr isExpanded={isEx} isHidden={!isEx} isStriped={rowIndex % 2 === 1}>
-                    <Td colSpan={tableBodyColSpan}>
-                      <ExpandableRowContent>
-                        <Text>{row.detail}</Text>
-                      </ExpandableRowContent>
-                    </Td>
-                  </Tr>
-                </React.Fragment>
-              );
-            })}
+            {slice.map((row, rowIndex) => (
+              <Tr key={row.id}>
+                <Td
+                  select={{
+                    rowIndex,
+                    onSelect: (_e, isSelected) => toggleRow(row.id, isSelected),
+                    isSelected: selected.has(row.id),
+                    variant: 'checkbox',
+                  }}
+                />
+                {cv.name && (
+                  <Td dataLabel="Name">
+                    <Button variant="link" isInline>{row.name}</Button>
+                  </Td>
+                )}
+                {cv.type && <Td dataLabel="Type">{row.type}</Td>}
+                {cv.sku && <Td dataLabel="SKU">{row.sku}</Td>}
+                {cv.contract && <Td dataLabel="Contract">{row.contract}</Td>}
+                {cv.startDate && <Td dataLabel="Start date">{row.startDate}</Td>}
+                {cv.endDate && <Td dataLabel="End date">{row.endDate}</Td>}
+                {cv.requiresVirtWho && <Td dataLabel="Requires Virt-Who">{row.requiresVirtWho ? 'True' : 'False'}</Td>}
+                {cv.entitlements && <Td dataLabel="Entitlements">{row.entitlements}</Td>}
+                {cv.hosts && <Td dataLabel="Hosts">{row.hosts}</Td>}
+              </Tr>
+            ))}
           </Tbody>
         </Table>
 
@@ -590,13 +507,12 @@ const TemplateIndex: React.FunctionComponent = () => {
           variant={PaginationVariant.bottom}
           isStatic
           isCompact
-          titles={paginationTitles}
           toggleTemplate={({ firstIndex, lastIndex, itemCount: total }) => (
             <span>
               {firstIndex} - {lastIndex} of {total}
             </span>
           )}
-          ouiaId="template-index-pagination-bottom"
+          ouiaId="subscriptions-pagination-bottom"
           style={{
             marginTop: spacingMd,
             paddingTop: 0,
@@ -628,7 +544,7 @@ const TemplateIndex: React.FunctionComponent = () => {
               <Tr key={col.id}>
                 <Td dataLabel={col.label} style={{ paddingBlock: 'var(--pf-v5-global--spacer--xs, 0.25rem)' }}>
                   <Checkbox
-                    id={`template-col-${col.id}`}
+                    id={`sub-col-${col.id}`}
                     label={col.label}
                     isChecked={draftColumnVisibility[col.id]}
                     onChange={(_e, checked) => setDraftColumn(col.id, Boolean(checked))}
@@ -643,4 +559,4 @@ const TemplateIndex: React.FunctionComponent = () => {
   );
 };
 
-export { TemplateIndex };
+export { Subscriptions };
