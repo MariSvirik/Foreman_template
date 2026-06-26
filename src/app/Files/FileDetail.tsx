@@ -77,6 +77,17 @@ const FileDetail: React.FunctionComponent = () => {
   const [activeTabKey, setActiveTabKey] = React.useState<TabKey>('libraryRepositories');
   const [cvSearch, setCvSearch] = React.useState('');
 
+  const filteredContentViews = React.useMemo(() => {
+    const q = cvSearch.trim().toLowerCase();
+    if (!q) return MOCK_CONTENT_VIEWS;
+    return MOCK_CONTENT_VIEWS.filter(
+      (cv) =>
+        cv.name.toLowerCase().includes(q) ||
+        cv.version.toLowerCase().includes(q) ||
+        cv.environment.toLowerCase().includes(q),
+    );
+  }, [cvSearch]);
+
   if (!file) {
     return (
       <PageSection aria-label="File detail">
@@ -88,17 +99,6 @@ const FileDetail: React.FunctionComponent = () => {
       </PageSection>
     );
   }
-
-  const filteredContentViews = React.useMemo(() => {
-    const q = cvSearch.trim().toLowerCase();
-    if (!q) return MOCK_CONTENT_VIEWS;
-    return MOCK_CONTENT_VIEWS.filter(
-      (cv) =>
-        cv.name.toLowerCase().includes(q) ||
-        cv.version.toLowerCase().includes(q) ||
-        cv.environment.toLowerCase().includes(q),
-    );
-  }, [cvSearch]);
 
   const inlineFields = (
     <Flex

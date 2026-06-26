@@ -11,6 +11,8 @@ import {
   DescriptionListTerm,
   EmptyState,
   EmptyStateBody,
+  EmptyStateHeader,
+  EmptyStateIcon,
   EmptyStateVariant,
   Flex,
   PageSection,
@@ -205,12 +207,12 @@ const ModuleStreamDetail: React.FunctionComponent = () => {
 
   const profilesEmpty = (
     <div style={tablePadded}>
-      <EmptyState
-        variant={EmptyStateVariant.sm}
-        icon={CubesIcon}
-        titleText="No profiles available"
-        headingLevel="h4"
-      >
+      <EmptyState variant={EmptyStateVariant.sm}>
+        <EmptyStateHeader
+          titleText="No profiles available"
+          headingLevel="h4"
+          icon={<EmptyStateIcon icon={CubesIcon} />}
+        />
         <EmptyStateBody>
           There are no profiles associated with this module stream.
         </EmptyStateBody>
