@@ -25,6 +25,14 @@ import { AnsibleCollections } from '@app/AnsibleCollections/AnsibleCollections';
 import { AnsibleCollectionDetail } from '@app/AnsibleCollections/AnsibleCollectionDetail';
 import { PythonPackages } from '@app/PythonPackages/PythonPackages';
 import { Subscriptions } from '@app/Subscriptions/Subscriptions';
+import { ContentCredentials } from '@app/ContentCredentials/ContentCredentials';
+import { AlternateContentSources } from '@app/AlternateContentSources/AlternateContentSources';
+import { SyncPlans } from '@app/SyncPlans/SyncPlans';
+import { SyncPlanDetail } from '@app/SyncPlans/SyncPlanDetail';
+import { SyncStatus } from '@app/SyncStatus/SyncStatus';
+import { ContainerImages } from '@app/ContainerImages/ContainerImages';
+import { FlatpakRemotes } from '@app/FlatpakRemotes/FlatpakRemotes';
+import { Lifecycle } from '@app/Lifecycle/Lifecycle';
 import { NotFound } from '@app/NotFound/NotFound';
 
 export interface IAppRoute {
@@ -53,25 +61,85 @@ const routes: AppRouteConfig[] = [
     title: 'PatternFly Seed | Main Dashboard',
   },
   {
-    element: <Repositories />,
-    exact: true,
-    label: 'Products',
-    path: '/repositories',
-    title: 'PatternFly Seed | Products',
-  }, // Products route
-  {
-    element: <ContentTypes />,
-    exact: true,
-    label: 'Content Types',
-    path: '/content-types',
-    title: 'PatternFly Seed | Content Types',
+    label: 'Content',
+    routes: [
+      {
+        element: <Subscriptions />,
+        exact: true,
+        label: 'Subscriptions',
+        path: '/subscriptions',
+        title: 'PatternFly Seed | Subscriptions',
+      },
+      {
+        element: <Repositories />,
+        exact: true,
+        label: 'Products',
+        path: '/repositories',
+        title: 'PatternFly Seed | Products',
+      },
+      {
+        element: <ContentCredentials />,
+        exact: true,
+        label: 'Content Credentials',
+        path: '/content-credentials',
+        title: 'PatternFly Seed | Content Credentials',
+      },
+      {
+        element: <AlternateContentSources />,
+        exact: true,
+        label: 'Alternate Content Sources',
+        path: '/alternate-content-sources',
+        title: 'PatternFly Seed | Alternate Content Sources',
+      },
+      {
+        element: <SyncPlans />,
+        exact: true,
+        label: 'Sync Plans',
+        path: '/sync-plans',
+        title: 'PatternFly Seed | Sync Plans',
+      },
+      {
+        element: <SyncStatus />,
+        exact: true,
+        label: 'Sync Status',
+        path: '/sync-status',
+        title: 'PatternFly Seed | Sync Status',
+      },
+      {
+        element: <ContainerImages />,
+        exact: true,
+        label: 'Container Images',
+        path: '/container-images',
+        title: 'PatternFly Seed | Container Images',
+      },
+      {
+        element: <FlatpakRemotes />,
+        exact: true,
+        label: 'Flatpak Remotes',
+        path: '/flatpak-remotes',
+        title: 'PatternFly Seed | Flatpak Remotes',
+      },
+      {
+        element: <ContentTypes />,
+        exact: true,
+        label: 'Content Types',
+        path: '/content-types',
+        title: 'PatternFly Seed | Content Types',
+      },
+    ],
   },
   {
-    element: <Subscriptions />,
+    element: <SyncPlanDetail />,
     exact: true,
-    label: 'Subscriptions',
-    path: '/subscriptions',
-    title: 'PatternFly Seed | Subscriptions',
+    path: '/sync-plans/:syncPlanId',
+    title: 'PatternFly Seed | Sync Plan Detail',
+  },
+  {
+    element: <Lifecycle />,
+    exact: true,
+    label: 'Lifecycle',
+    path: '/lifecycle',
+    title: 'PatternFly Seed | Lifecycle',
   },
   {
     element: <ErrataIndex />,
@@ -183,30 +251,22 @@ const routes: AppRouteConfig[] = [
     title: 'PatternFly Seed | Add transient packages to Containerfile',
   },
   {
-    label: 'Other projects',
-    routes: [
-      {
-        element: <PowerPuffGirl />,
-        exact: true,
-        label: 'PowerPuffGirl3.0-Everythingnice.com',
-        path: '/powerpuffgirl',
-        title: 'PatternFly Seed | PowerPuffGirl3.0-Everythingnice.com',
-      },
-      {
-        element: <CreateHost />,
-        exact: true,
-        label: 'Create Host',
-        path: '/hosts/create',
-        title: 'PatternFly Seed | Create Host',
-      },
-      {
-        element: <ActivationKeys />,
-        exact: true,
-        label: 'Activation Keys',
-        path: '/activation-keys',
-        title: 'PatternFly Seed | Activation Keys',
-      },
-    ],
+    element: <PowerPuffGirl />,
+    exact: true,
+    path: '/powerpuffgirl',
+    title: 'PatternFly Seed | PowerPuffGirl3.0-Everythingnice.com',
+  },
+  {
+    element: <CreateHost />,
+    exact: true,
+    path: '/hosts/create',
+    title: 'PatternFly Seed | Create Host',
+  },
+  {
+    element: <ActivationKeys />,
+    exact: true,
+    path: '/activation-keys',
+    title: 'PatternFly Seed | Activation Keys',
   },
 ];
 

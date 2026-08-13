@@ -69,12 +69,16 @@ type TemplateRow = {
   status: string;
   lastModified: string;
   detail: string;
+  /** Optional absolute path for index-page examples (bypasses /template/:id). */
+  href?: string;
 };
 
 const MOCK_ROWS: TemplateRow[] = [
   { id: '1', name: 'alpha-service', status: 'Running', lastModified: '2026-04-01 14:22 UTC', detail: 'Deployment template for the alpha API service.' },
   { id: '2', name: 'Without search', status: 'Stopped', lastModified: '2026-03-28 09:05 UTC', detail: 'Template detail variant without search toolbars.' },
   { id: '13', name: 'Example with more details', status: 'Running', lastModified: '2026-04-08 10:15 UTC', detail: 'Template detail variant with Errata-style description list items.' },
+  { id: '14', name: 'Without tabs', status: 'Running', lastModified: '2026-04-09 09:00 UTC', detail: 'Detail page without tabs — content displayed directly below a horizontal description list.' },
+  { id: '15', name: 'Index with tabs', status: 'Running', lastModified: '2026-04-10 11:00 UTC', detail: 'Index page with tabs (Container images) — title, tabs, search, and table; no breadcrumbs or description.', href: '/container-images' },
   { id: '3', name: 'gamma-api', status: 'Running', lastModified: '2026-04-06 11:40 UTC', detail: 'REST API gateway configuration.' },
   { id: '4', name: 'delta-cache', status: 'Pending', lastModified: '2026-04-05 16:18 UTC', detail: 'Redis-backed cache layer.' },
   { id: '5', name: 'epsilon-jobs', status: 'Failed', lastModified: '2026-03-30 22:11 UTC', detail: 'Scheduled job runner template.' },
@@ -530,7 +534,9 @@ const TemplateIndex: React.FunctionComponent = () => {
                         <Button
                           variant="link"
                           isInline
-                          onClick={() => navigate(`/template/${encodeURIComponent(row.name)}`)}
+                          onClick={() =>
+                            navigate(row.href ?? `/template/${encodeURIComponent(row.name)}`)
+                          }
                         >
                           {row.name}
                         </Button>

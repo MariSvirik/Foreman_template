@@ -25,12 +25,16 @@ body,
   box-shadow: none;
 }
 
-/* Bookmark MenuToggle: 16px padding around icon+caret */
+/* Bookmark MenuToggle: compact padding */
 .app-template-search-bookmark-toggle.pf-v5-c-menu-toggle {
-  padding-inline: var(--pf-v5-global--spacer--md, 16px);
+  padding-inline: var(--pf-v5-global--spacer--sm, 8px);
 }
 .app-template-search-bookmark-toggle.pf-v5-c-menu-toggle .pf-v5-c-menu-toggle__controls {
-  padding-inline: var(--pf-v5-global--spacer--xs, 0.25rem);
+  padding-inline-start: var(--pf-v5-global--spacer--xs, 0.25rem);
+  padding-inline-end: 0;
+}
+.app-template-search-bookmark-toggle.pf-v5-c-menu-toggle .pf-v5-c-menu-toggle__toggle-icon {
+  margin-inline-end: 0;
 }
 
 /* If the boxed input-group item still clips the toggle top edge, draw the same top line as the control arrow */

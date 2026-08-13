@@ -8,6 +8,7 @@ import {
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
+  Divider,
   Dropdown,
   DropdownItem,
   DropdownList,
@@ -44,6 +45,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 const spacingL = 'var(--pf-v5-global--spacer--l, var(--pf-global--spacer--lg, 24px))';
 const spacingMd = 'var(--pf-v5-global--spacer--md, var(--pf-global--spacer--md, 16px))';
 const background100 = 'var(--pf-v5-global--BackgroundColor--100, var(--pf-global--BackgroundColor--100, #fff))';
+const background200 = 'var(--pf-v5-global--BackgroundColor--200, var(--pf-global--BackgroundColor--200, #f0f0f0))';
 
 const TAB_IDS = {
   items: 'template-detail-tab-items',
@@ -84,6 +86,7 @@ const TemplateDetail: React.FunctionComponent = () => {
 
   const hideSearch = displayName === 'Without search';
   const isDetailedExample = displayName === 'Example with more details';
+  const isWithoutTabs = displayName === 'Without tabs';
 
   const [activeTabKey, setActiveTabKey] = React.useState<'items' | 'empty'>('items');
 
@@ -379,210 +382,310 @@ const TemplateDetail: React.FunctionComponent = () => {
       padding={{ default: 'noPadding' }}
       style={{ backgroundColor: background100 }}
     >
-      {/* 1. Breadcrumb section */}
-      <div
-        style={{
-          paddingTop: spacingMd,
-          paddingRight: spacingL,
-          paddingBottom: 0,
-          paddingLeft: spacingL,
-          boxSizing: 'border-box',
-        }}
-      >
-        <Breadcrumb>
-          <BreadcrumbItem
-            to="/template"
-            render={({ className, ariaCurrent }) => (
-              <Link className={className} to="/template" aria-current={ariaCurrent}>
-                Template
-              </Link>
-            )}
-          />
-          <BreadcrumbItem isActive>{displayName}</BreadcrumbItem>
-        </Breadcrumb>
-      </div>
-
-      {/* 2. Title section */}
-      <div
-        style={{
-          paddingTop: spacingMd,
-          paddingRight: spacingL,
-          paddingBottom: spacingMd,
-          paddingLeft: spacingL,
-          boxSizing: 'border-box',
-        }}
-      >
-        <Level hasGutter>
-          <LevelItem>
-            <TextContent>
-              <Title headingLevel="h1" size="2xl">
-                {displayName}
-              </Title>
-              {!isDetailedExample && (
-                <Text component="p">
-                  Summary and status for this template. Use the items tab to review child resources, or open
-                  details for metadata and activity.
-                </Text>
-              )}
-            </TextContent>
-          </LevelItem>
-          <LevelItem>
-            <Button variant="secondary">Edit</Button>
-          </LevelItem>
-        </Level>
-
-        {isDetailedExample && (
-          <div style={{ marginTop: spacingMd }}>
-            <Flex
-              flexWrap={{ default: 'wrap' }}
-              alignItems={{ default: 'alignItemsFlexStart' }}
-              style={{ gap: '14px' }}
-            >
-              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
-                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
-                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Status</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    <Label color="green">Running</Label>
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
-                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
-                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Type</DescriptionListTerm>
-                  <DescriptionListDescription>Service template</DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
-                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
-                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Owner</DescriptionListTerm>
-                  <DescriptionListDescription>admin@example.com</DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
-                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
-                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Created</DescriptionListTerm>
-                  <DescriptionListDescription>Jan 15, 2026</DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-              <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
-                <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
-                  <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Last modified</DescriptionListTerm>
-                  <DescriptionListDescription>Apr 7, 2026</DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            </Flex>
-
-            <DescriptionList style={{ marginTop: '14px' }}>
-              <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
-                <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Environment</DescriptionListTerm>
-                <DescriptionListDescription>Production / us-east-1</DescriptionListDescription>
-              </DescriptionListGroup>
-            </DescriptionList>
-
-            <DescriptionList style={{ marginTop: '14px' }}>
-              <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
-                <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Description</DescriptionListTerm>
-                <DescriptionListDescription>
-                  This template provides a standardized configuration for deploying containerized microservices
-                  in a production environment. It includes health checks, resource limits, auto-scaling policies,
-                  and network ingress rules. Use the items tab to review child resources or the details tab for
-                  metadata and audit history.
-                </DescriptionListDescription>
-              </DescriptionListGroup>
-            </DescriptionList>
+      {isWithoutTabs ? (
+        <>
+          {/* Breadcrumb */}
+          <div
+            style={{
+              paddingTop: spacingMd,
+              paddingRight: spacingL,
+              paddingBottom: 0,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <Breadcrumb>
+              <BreadcrumbItem
+                to="/template"
+                render={({ className, ariaCurrent }) => (
+                  <Link className={className} to="/template" aria-current={ariaCurrent}>
+                    Template
+                  </Link>
+                )}
+              />
+              <BreadcrumbItem isActive>{displayName}</BreadcrumbItem>
+            </Breadcrumb>
           </div>
-        )}
-      </div>
 
-      {/* 3. Tabs section — tab list only (not the table); PF tabs visuals */}
-      <div
-        style={{
-          paddingTop: 0,
-          paddingRight: spacingL,
-          paddingLeft: spacingL,
-          boxSizing: 'border-box',
-        }}
-      >
-        <div className={css(tabStyles.tabs)} aria-label="Template detail tabs">
-          <ul className={css(tabStyles.tabsList)} role="tablist">
-            <li
-              className={css(tabStyles.tabsItem, activeTabKey === 'items' && tabStyles.modifiers.current)}
-              role="presentation"
+          {/* Title + Label badge + Edit button */}
+          <div
+            style={{
+              paddingTop: spacingMd,
+              paddingRight: spacingL,
+              paddingBottom: 0,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <Level hasGutter>
+              <LevelItem>
+                <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+                  <Title headingLevel="h1" size="2xl">
+                    {displayName}
+                  </Title>
+                  <Label color="blue">RHEL 9</Label>
+                </Flex>
+              </LevelItem>
+              <LevelItem>
+                <Button variant="secondary">Edit</Button>
+              </LevelItem>
+            </Level>
+          </div>
+
+          {/* Description text + link */}
+          <div
+            style={{
+              paddingTop: 'var(--pf-v5-global--spacer--sm, 8px)',
+              paddingRight: spacingL,
+              paddingBottom: spacingMd,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <TextContent>
+              <Text component="p" style={{ marginBottom: 0 }}>
+                Baseline RHEL 9 image for web workloads.
+              </Text>
+              <Text component="p" style={{ marginBottom: 'var(--pf-v5-global--spacer--sm, 8px)' }}>
+                Last modified on: 10 Mar 2025
+              </Text>
+              <Text component="a" href="#" style={{ fontSize: '14px' }}>
+                View documentation ↗
+              </Text>
+            </TextContent>
+          </div>
+
+          {/* Divider */}
+          <Divider component="div" />
+
+          {/* Secondary header */}
+          <div
+            style={{
+              paddingTop: spacingL,
+              paddingRight: spacingL,
+              paddingBottom: 0,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <Title headingLevel="h2" size="lg">
+              Systems
+            </Title>
+          </div>
+
+          {/* Content */}
+          <div style={{ paddingBottom: spacingL, boxSizing: 'border-box' }}>
+            {tableSection}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* 1. Breadcrumb section */}
+          <div
+            style={{
+              paddingTop: spacingMd,
+              paddingRight: spacingL,
+              paddingBottom: 0,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <Breadcrumb>
+              <BreadcrumbItem
+                to="/template"
+                render={({ className, ariaCurrent }) => (
+                  <Link className={className} to="/template" aria-current={ariaCurrent}>
+                    Template
+                  </Link>
+                )}
+              />
+              <BreadcrumbItem isActive>{displayName}</BreadcrumbItem>
+            </Breadcrumb>
+          </div>
+
+          {/* 2. Title section */}
+          <div
+            style={{
+              paddingTop: spacingMd,
+              paddingRight: spacingL,
+              paddingBottom: spacingMd,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <Level hasGutter>
+              <LevelItem>
+                <TextContent>
+                  <Title headingLevel="h1" size="2xl">
+                    {displayName}
+                  </Title>
+                  {!isDetailedExample && (
+                    <Text component="p">
+                      Summary and status for this template. Use the items tab to review child resources, or open
+                      details for metadata and activity.
+                    </Text>
+                  )}
+                </TextContent>
+              </LevelItem>
+              <LevelItem>
+                <Button variant="secondary">Edit</Button>
+              </LevelItem>
+            </Level>
+
+            {isDetailedExample && (
+              <div style={{ marginTop: spacingMd }}>
+                <Flex
+                  flexWrap={{ default: 'wrap' }}
+                  alignItems={{ default: 'alignItemsFlexStart' }}
+                  style={{ gap: '14px' }}
+                >
+                  <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                    <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                      <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Status</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Label color="green">Running</Label>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  </DescriptionList>
+                  <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                    <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                      <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Type</DescriptionListTerm>
+                      <DescriptionListDescription>Service template</DescriptionListDescription>
+                    </DescriptionListGroup>
+                  </DescriptionList>
+                  <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                    <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                      <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Owner</DescriptionListTerm>
+                      <DescriptionListDescription>admin@example.com</DescriptionListDescription>
+                    </DescriptionListGroup>
+                  </DescriptionList>
+                  <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                    <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                      <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Created</DescriptionListTerm>
+                      <DescriptionListDescription>Jan 15, 2026</DescriptionListDescription>
+                    </DescriptionListGroup>
+                  </DescriptionList>
+                  <DescriptionList style={{ flex: '1 1 8rem', minWidth: '7.5rem', marginBottom: 0 }}>
+                    <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                      <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Last modified</DescriptionListTerm>
+                      <DescriptionListDescription>Apr 7, 2026</DescriptionListDescription>
+                    </DescriptionListGroup>
+                  </DescriptionList>
+                </Flex>
+
+                <DescriptionList style={{ marginTop: '14px' }}>
+                  <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                    <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Environment</DescriptionListTerm>
+                    <DescriptionListDescription>Production / us-east-1</DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+
+                <DescriptionList style={{ marginTop: '14px' }}>
+                  <DescriptionListGroup style={{ rowGap: '8px', display: 'flex', flexDirection: 'column' }}>
+                    <DescriptionListTerm style={{ fontSize: '14px', fontWeight: 700 }}>Description</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      This template provides a standardized configuration for deploying containerized microservices
+                      in a production environment. It includes health checks, resource limits, auto-scaling policies,
+                      and network ingress rules. Use the items tab to review child resources or the details tab for
+                      metadata and audit history.
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Tabs section — tab list only (not the table); PF tabs visuals */}
+          <div
+            style={{
+              paddingTop: 0,
+              paddingRight: spacingL,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <div className={css(tabStyles.tabs)} aria-label="Template detail tabs">
+              <ul className={css(tabStyles.tabsList)} role="tablist">
+                <li
+                  className={css(tabStyles.tabsItem, activeTabKey === 'items' && tabStyles.modifiers.current)}
+                  role="presentation"
+                >
+                  <button
+                    type="button"
+                    id={TAB_IDS.items}
+                    className={css(tabStyles.tabsLink)}
+                    role="tab"
+                    aria-selected={activeTabKey === 'items'}
+                    aria-controls={PANEL_IDS.items}
+                    tabIndex={activeTabKey === 'items' ? 0 : -1}
+                    onClick={() => setActiveTabKey('items')}
+                  >
+                    <span className={css(tabStyles.tabsItemText)}>Items</span>
+                  </button>
+                </li>
+                <li
+                  className={css(tabStyles.tabsItem, activeTabKey === 'empty' && tabStyles.modifiers.current)}
+                  role="presentation"
+                >
+                  <button
+                    type="button"
+                    id={TAB_IDS.empty}
+                    className={css(tabStyles.tabsLink)}
+                    role="tab"
+                    aria-selected={activeTabKey === 'empty'}
+                    aria-controls={PANEL_IDS.empty}
+                    tabIndex={activeTabKey === 'empty' ? 0 : -1}
+                    onClick={() => setActiveTabKey('empty')}
+                  >
+                    <span className={css(tabStyles.tabsItemText)}>Empty example</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 4. Table / content section — separate from tabs; tab panels */}
+          <div
+            style={{
+              paddingBottom: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <section
+              id={PANEL_IDS.items}
+              role="tabpanel"
+              aria-labelledby={TAB_IDS.items}
+              className={css(tabContentStyles.tabContent)}
+              style={{ padding: 0 }}
+              hidden={activeTabKey !== 'items'}
+              tabIndex={0}
             >
-              <button
-                type="button"
-                id={TAB_IDS.items}
-                className={css(tabStyles.tabsLink)}
-                role="tab"
-                aria-selected={activeTabKey === 'items'}
-                aria-controls={PANEL_IDS.items}
-                tabIndex={activeTabKey === 'items' ? 0 : -1}
-                onClick={() => setActiveTabKey('items')}
-              >
-                <span className={css(tabStyles.tabsItemText)}>Items</span>
-              </button>
-            </li>
-            <li
-              className={css(tabStyles.tabsItem, activeTabKey === 'empty' && tabStyles.modifiers.current)}
-              role="presentation"
+              {tableSection}
+            </section>
+
+            <section
+              id={PANEL_IDS.empty}
+              role="tabpanel"
+              aria-labelledby={TAB_IDS.empty}
+              className={css(tabContentStyles.tabContent)}
+              style={{ paddingLeft: spacingL, paddingRight: spacingL, paddingTop: spacingL }}
+              hidden={activeTabKey !== 'empty'}
+              tabIndex={0}
             >
-              <button
-                type="button"
-                id={TAB_IDS.empty}
-                className={css(tabStyles.tabsLink)}
-                role="tab"
-                aria-selected={activeTabKey === 'empty'}
-                aria-controls={PANEL_IDS.empty}
-                tabIndex={activeTabKey === 'empty' ? 0 : -1}
-                onClick={() => setActiveTabKey('empty')}
-              >
-                <span className={css(tabStyles.tabsItemText)}>Empty example</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      {/* 4. Table / content section — separate from tabs; tab panels */}
-      <div
-        style={{
-          paddingBottom: spacingL,
-          boxSizing: 'border-box',
-        }}
-      >
-        <section
-          id={PANEL_IDS.items}
-          role="tabpanel"
-          aria-labelledby={TAB_IDS.items}
-          className={css(tabContentStyles.tabContent)}
-          style={{ padding: 0 }}
-          hidden={activeTabKey !== 'items'}
-          tabIndex={0}
-        >
-          {tableSection}
-        </section>
-
-        <section
-          id={PANEL_IDS.empty}
-          role="tabpanel"
-          aria-labelledby={TAB_IDS.empty}
-          className={css(tabContentStyles.tabContent)}
-          style={{ paddingLeft: spacingL, paddingRight: spacingL, paddingTop: spacingL }}
-          hidden={activeTabKey !== 'empty'}
-          tabIndex={0}
-        >
-          <EmptyState variant={EmptyStateVariant.lg}>
-            <EmptyStateHeader
-              titleText="No items to display yet"
-              headingLevel="h4"
-              icon={<EmptyStateIcon icon={CubesIcon} />}
-            />
-            <EmptyStateBody>
-              This section is currently empty. Items will appear here once they are available.
-            </EmptyStateBody>
-          </EmptyState>
-        </section>
-      </div>
+              <EmptyState variant={EmptyStateVariant.lg}>
+                <EmptyStateHeader
+                  titleText="No items to display yet"
+                  headingLevel="h4"
+                  icon={<EmptyStateIcon icon={CubesIcon} />}
+                />
+                <EmptyStateBody>
+                  This section is currently empty. Items will appear here once they are available.
+                </EmptyStateBody>
+              </EmptyState>
+            </section>
+          </div>
+        </>
+      )}
     </PageSection>
   );
 };
