@@ -1,14 +1,25 @@
 import * as React from 'react';
 import {
   Button,
+  Card,
+  CardBody,
+  CardTitle,
   Checkbox,
   Divider,
   Dropdown,
   DropdownGroup,
   DropdownItem,
   DropdownList,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateHeader,
+  EmptyStateIcon,
+  EmptyStateVariant,
+  Grid,
+  GridItem,
   InputGroup,
   InputGroupItem,
+  Label,
   Level,
   LevelItem,
   MenuToggle,
@@ -29,9 +40,13 @@ import {
 import { BulkSelect, BulkSelectValue } from '@patternfly/react-component-groups/dist/esm/BulkSelect';
 import {
   ColumnsIcon,
+  CubesIcon,
   EllipsisVIcon,
   OutlinedBookmarkIcon,
 } from '@patternfly/react-icons';
+import { css } from '@patternfly/react-styles';
+import tabStyles from '@patternfly/react-styles/css/components/Tabs/tabs.mjs';
+import tabContentStyles from '@patternfly/react-styles/css/components/TabContent/tab-content.mjs';
 import {
   ExpandableRowContent,
   Table,
@@ -74,11 +89,13 @@ type TemplateRow = {
 };
 
 const MOCK_ROWS: TemplateRow[] = [
-  { id: '1', name: 'alpha-service', status: 'Running', lastModified: '2026-04-01 14:22 UTC', detail: 'Deployment template for the alpha API service.' },
   { id: '2', name: 'Without search', status: 'Stopped', lastModified: '2026-03-28 09:05 UTC', detail: 'Template detail variant without search toolbars.' },
   { id: '13', name: 'Example with more details', status: 'Running', lastModified: '2026-04-08 10:15 UTC', detail: 'Template detail variant with Errata-style description list items.' },
   { id: '14', name: 'Without tabs', status: 'Running', lastModified: '2026-04-09 09:00 UTC', detail: 'Detail page without tabs — content displayed directly below a horizontal description list.' },
   { id: '15', name: 'Index with tabs', status: 'Running', lastModified: '2026-04-10 11:00 UTC', detail: 'Index page with tabs (Container images) — title, tabs, search, and table; no breadcrumbs or description.', href: '/container-images' },
+  { id: '16', name: 'Index with cards', status: 'Running', lastModified: '2026-04-11 09:30 UTC', detail: 'Index page with a card section between the title and the toolbar.', href: '/template/index-with-cards' },
+  { id: '17', name: 'Index with cards and tabs', status: 'Running', lastModified: '2026-04-12 10:00 UTC', detail: 'Index page with summary cards and tabs above the toolbar and table.', href: '/template/index-with-cards-and-tabs' },
+  { id: '1', name: 'alpha-service', status: 'Running', lastModified: '2026-04-01 14:22 UTC', detail: 'Deployment template for the alpha API service.' },
   { id: '3', name: 'gamma-api', status: 'Running', lastModified: '2026-04-06 11:40 UTC', detail: 'REST API gateway configuration.' },
   { id: '4', name: 'delta-cache', status: 'Pending', lastModified: '2026-04-05 16:18 UTC', detail: 'Redis-backed cache layer.' },
   { id: '5', name: 'epsilon-jobs', status: 'Failed', lastModified: '2026-03-30 22:11 UTC', detail: 'Scheduled job runner template.' },
@@ -91,10 +108,23 @@ const MOCK_ROWS: TemplateRow[] = [
   { id: '12', name: 'mu-storage', status: 'Running', lastModified: '2026-04-07 07:30 UTC', detail: 'Object storage bucket policy.' },
 ];
 
-const TemplateIndex: React.FunctionComponent = () => {
+type TemplateIndexProps = {
+  /** When true, render summary cards between the title and the toolbar. */
+  showCards?: boolean;
+  /** When true, render tabs between cards (or title) and the list. */
+  showTabs?: boolean;
+};
+
+const TAB_IDS = { items: 'template-index-tab-items', empty: 'template-index-tab-empty' };
+const PANEL_IDS = { items: 'template-index-panel-items', empty: 'template-index-panel-empty' };
+
+const TemplateIndex: React.FunctionComponent<TemplateIndexProps> = ({
+  showCards = false,
+  showTabs = false,
+}) => {
   const navigate = useNavigate();
   const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(5);
+  const [perPage, setPerPage] = React.useState(20);
   const [search, setSearch] = React.useState('');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
@@ -106,6 +136,17 @@ const TemplateIndex: React.FunctionComponent = () => {
     React.useState<Record<TableColumnId, boolean>>(DEFAULT_COLUMN_VISIBILITY);
   const [draftColumnVisibility, setDraftColumnVisibility] =
     React.useState<Record<TableColumnId, boolean>>(DEFAULT_COLUMN_VISIBILITY);
+  const [activeTabKey, setActiveTabKey] = React.useState<'items' | 'empty'>('items');
+  const [cardFilter, setCardFilter] = React.useState<string | null>(null);
+
+  /** Card index variants omit bulk select and row checkboxes. */
+  const hideSelection = showCards;
+
+  const pageTitle = showCards && showTabs
+    ? 'Index with cards and tabs'
+    : showCards
+      ? 'Index with cards'
+      : 'Template';
 
   const openManageColumnsModal = () => {
     setDraftColumnVisibility({ ...columnVisibility });
@@ -130,8 +171,8 @@ const TemplateIndex: React.FunctionComponent = () => {
   };
 
   const visibleDataColumnCount = TABLE_COLUMN_OPTIONS.filter((c) => columnVisibility[c.id]).length;
-  /** Expand + select + optional data columns + actions (always shown). */
-  const tableBodyColSpan = 2 + visibleDataColumnCount + 1;
+  /** Expand + optional select + optional data columns + actions (always shown). */
+  const tableBodyColSpan = 1 + (hideSelection ? 0 : 1) + visibleDataColumnCount + 1;
 
   const applySavedBookmarkQuery = (query: string) => {
     setSearch(query);
@@ -168,17 +209,21 @@ const TemplateIndex: React.FunctionComponent = () => {
   };
 
   const filtered = React.useMemo(() => {
+    let rows = MOCK_ROWS;
+    if (cardFilter) {
+      rows = rows.filter((r) => r.status === cardFilter);
+    }
     const q = search.trim().toLowerCase();
     if (!q) {
-      return MOCK_ROWS;
+      return rows;
     }
-    return MOCK_ROWS.filter(
+    return rows.filter(
       (r) =>
         r.name.toLowerCase().includes(q) ||
         r.status.toLowerCase().includes(q) ||
         r.lastModified.toLowerCase().includes(q),
     );
-  }, [search]);
+  }, [search, cardFilter]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / perPage));
   const safePage = Math.min(page, pageCount);
@@ -263,6 +308,38 @@ const TemplateIndex: React.FunctionComponent = () => {
 
   const itemCount = filtered.length;
 
+  const cardStats = React.useMemo(() => {
+    const countByStatus = (status: string) => MOCK_ROWS.filter((r) => r.status === status).length;
+    return [
+      {
+        id: 'running',
+        title: 'Items with running status',
+        value: String(countByStatus('Running')),
+        status: 'Running',
+        showLabel: false,
+      },
+      {
+        id: 'stopped',
+        title: 'Items with stopped status',
+        value: String(countByStatus('Stopped')),
+        status: 'Stopped',
+        showLabel: false,
+      },
+      {
+        id: 'failed',
+        title: 'Items with failed status',
+        value: String(countByStatus('Failed')),
+        status: 'Failed',
+        showLabel: true,
+      },
+    ];
+  }, []);
+
+  const applyCardFilter = (status: string) => {
+    setCardFilter((prev) => (prev === status ? null : status));
+    setPage(1);
+  };
+
   const paginationTitles = {
     paginationAriaLabel: 'Template list pagination',
     toFirstPageAriaLabel: 'Go to first page',
@@ -293,7 +370,7 @@ const TemplateIndex: React.FunctionComponent = () => {
           <LevelItem>
             <TextContent>
               <Title headingLevel="h1" size="2xl">
-                Template
+                {pageTitle}
               </Title>
             </TextContent>
           </LevelItem>
@@ -303,16 +380,144 @@ const TemplateIndex: React.FunctionComponent = () => {
         </Level>
       </section>
 
-      <section
-        aria-label="Template list"
-        style={{
-          paddingTop: 0,
-          paddingRight: spacingL,
-          paddingBottom: spacingL,
-          paddingLeft: spacingL,
-          boxSizing: 'border-box',
-        }}
-      >
+      {showCards ? (
+        <section
+          aria-label="Summary cards"
+          style={{
+            paddingTop: spacingMd,
+            paddingRight: spacingL,
+            paddingBottom: spacingMd,
+            paddingLeft: spacingL,
+            boxSizing: 'border-box',
+          }}
+        >
+          <Grid hasGutter>
+            {cardStats.map((card) => (
+              <GridItem key={card.id} span={12} md={4}>
+                <Card
+                  isCompact
+                  isFlat
+                  isFullHeight
+                  isSelectable
+                  isSelected={cardFilter === card.status}
+                >
+                  <CardTitle>
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        applyCardFilter(card.status);
+                      }}
+                      style={{ color: 'inherit', textDecoration: 'none' }}
+                    >
+                      {card.title}
+                    </a>
+                  </CardTitle>
+                  <CardBody>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      {card.showLabel ? (
+                        <Label color="red" isCompact>
+                          Critical
+                        </Label>
+                      ) : null}
+                      <Button
+                        variant="link"
+                        isInline
+                        component="a"
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          applyCardFilter(card.status);
+                        }}
+                        style={{
+                          fontSize: '18px',
+                          fontFamily:
+                            'var(--pf-v5-global--FontFamily--text, "RedHatText", "Red Hat Text", Helvetica, Arial, sans-serif)',
+                          fontWeight: 700,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {card.value}
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              </GridItem>
+            ))}
+          </Grid>
+        </section>
+      ) : null}
+
+      {showTabs ? (
+        <div
+          style={{
+            paddingTop: 0,
+            paddingRight: spacingL,
+            paddingLeft: spacingL,
+            boxSizing: 'border-box',
+          }}
+        >
+          <div className={css(tabStyles.tabs)} aria-label="Template index tabs">
+            <ul className={css(tabStyles.tabsList)} role="tablist">
+              <li
+                className={css(tabStyles.tabsItem, activeTabKey === 'items' && tabStyles.modifiers.current)}
+                role="presentation"
+              >
+                <button
+                  type="button"
+                  id={TAB_IDS.items}
+                  className={css(tabStyles.tabsLink)}
+                  role="tab"
+                  aria-selected={activeTabKey === 'items'}
+                  aria-controls={PANEL_IDS.items}
+                  tabIndex={activeTabKey === 'items' ? 0 : -1}
+                  onClick={() => setActiveTabKey('items')}
+                >
+                  <span className={css(tabStyles.tabsItemText)}>Items</span>
+                </button>
+              </li>
+              <li
+                className={css(tabStyles.tabsItem, activeTabKey === 'empty' && tabStyles.modifiers.current)}
+                role="presentation"
+              >
+                <button
+                  type="button"
+                  id={TAB_IDS.empty}
+                  className={css(tabStyles.tabsLink)}
+                  role="tab"
+                  aria-selected={activeTabKey === 'empty'}
+                  aria-controls={PANEL_IDS.empty}
+                  tabIndex={activeTabKey === 'empty' ? 0 : -1}
+                  onClick={() => setActiveTabKey('empty')}
+                >
+                  <span className={css(tabStyles.tabsItemText)}>Empty example</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      ) : null}
+
+      {showTabs ? (
+        <div style={{ paddingBottom: spacingL, boxSizing: 'border-box' }}>
+          <section
+            id={PANEL_IDS.items}
+            role="tabpanel"
+            aria-labelledby={TAB_IDS.items}
+            className={css(tabContentStyles.tabContent)}
+            style={{ padding: 0 }}
+            hidden={activeTabKey !== 'items'}
+            tabIndex={0}
+          >
+            <div
+              style={{
+                paddingTop: 0,
+                paddingRight: spacingL,
+                paddingBottom: 0,
+                paddingLeft: spacingL,
+                boxSizing: 'border-box',
+              }}
+            >
         <Toolbar
           id="template-index-toolbar"
           ouiaId="template-index-toolbar"
@@ -320,29 +525,31 @@ const TemplateIndex: React.FunctionComponent = () => {
           style={{ marginBottom: 0 }}
         >
           <ToolbarContent alignItems="center">
-            <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
-              <ToolbarItem>
-                <BulkSelect
-                  ouiaId="template-bulk-select"
-                  isDataPaginated
-                  canSelectAll
-                  pageCount={slice.length}
-                  selectedCount={selected.size}
-                  totalCount={filtered.length}
-                  pageSelected={allOnPageSelected}
-                  pagePartiallySelected={partiallySelected}
-                  onSelect={onBulkSelect}
-                  popperProps={{ appendTo: () => document.body }}
-                  menuToggleCheckboxProps={{
-                    id: 'template-bulk-checkbox',
-                    'aria-label':
-                      selected.size > 0
-                        ? `Select rows, ${selected.size} of ${filtered.length} selected`
-                        : 'Select rows',
-                  }}
-                />
-              </ToolbarItem>
-            </ToolbarGroup>
+            {!hideSelection ? (
+              <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
+                <ToolbarItem>
+                  <BulkSelect
+                    ouiaId="template-bulk-select"
+                    isDataPaginated
+                    canSelectAll
+                    pageCount={slice.length}
+                    selectedCount={selected.size}
+                    totalCount={filtered.length}
+                    pageSelected={allOnPageSelected}
+                    pagePartiallySelected={partiallySelected}
+                    onSelect={onBulkSelect}
+                    popperProps={{ appendTo: () => document.body }}
+                    menuToggleCheckboxProps={{
+                      id: 'template-bulk-checkbox',
+                      'aria-label':
+                        selected.size > 0
+                          ? `Select rows, ${selected.size} of ${filtered.length} selected`
+                          : 'Select rows',
+                    }}
+                  />
+                </ToolbarItem>
+              </ToolbarGroup>
+            ) : null}
 
             <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
               <ToolbarItem style={{ flex: '0 0 auto', width: 420, maxWidth: 'min(560px, 100%)' }}>
@@ -499,7 +706,7 @@ const TemplateIndex: React.FunctionComponent = () => {
                     : undefined
                 }
               />
-              <Th screenReaderText="Select row" />
+              {!hideSelection ? <Th screenReaderText="Select row" /> : null}
               {columnVisibility.name ? <Th style={thNowrap}>Name</Th> : null}
               {columnVisibility.status ? <Th style={thNowrap}>Status</Th> : null}
               {columnVisibility.lastModified ? (
@@ -521,14 +728,16 @@ const TemplateIndex: React.FunctionComponent = () => {
                         onToggle: (_e, _rIdx, isOpen) => toggleExpand(row.id, isOpen),
                       }}
                     />
-                    <Td
-                      select={{
-                        rowIndex,
-                        onSelect: (_e, isSelected) => toggleRow(row.id, isSelected),
-                        isSelected: selected.has(row.id),
-                        variant: 'checkbox',
-                      }}
-                    />
+                    {!hideSelection ? (
+                      <Td
+                        select={{
+                          rowIndex,
+                          onSelect: (_e, isSelected) => toggleRow(row.id, isSelected),
+                          isSelected: selected.has(row.id),
+                          variant: 'checkbox',
+                        }}
+                      />
+                    ) : null}
                     {columnVisibility.name ? (
                       <Td dataLabel="Name">
                         <Button
@@ -611,7 +820,350 @@ const TemplateIndex: React.FunctionComponent = () => {
             paddingInline: 0,
           }}
         />
-      </section>
+            </div>
+          </section>
+
+          <section
+            id={PANEL_IDS.empty}
+            role="tabpanel"
+            aria-labelledby={TAB_IDS.empty}
+            className={css(tabContentStyles.tabContent)}
+            style={{
+              paddingTop: spacingL,
+              paddingRight: spacingL,
+              paddingBottom: 0,
+              paddingLeft: spacingL,
+            }}
+            hidden={activeTabKey !== 'empty'}
+            tabIndex={0}
+          >
+            <EmptyState variant={EmptyStateVariant.lg}>
+              <EmptyStateHeader
+                titleText="No items to display yet"
+                headingLevel="h4"
+                icon={<EmptyStateIcon icon={CubesIcon} />}
+              />
+              <EmptyStateBody>
+                This section is currently empty. Items will appear here once they are available.
+              </EmptyStateBody>
+            </EmptyState>
+          </section>
+        </div>
+      ) : (
+        <section
+          aria-label="Template list"
+          style={{
+            paddingTop: 0,
+            paddingRight: spacingL,
+            paddingBottom: spacingL,
+            paddingLeft: spacingL,
+            boxSizing: 'border-box',
+          }}
+        >
+        <Toolbar
+          id="template-index-toolbar"
+          ouiaId="template-index-toolbar"
+          inset={{ default: 'insetNone' }}
+          style={{ marginBottom: 0 }}
+        >
+          <ToolbarContent alignItems="center">
+            {!hideSelection ? (
+              <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
+                <ToolbarItem>
+                  <BulkSelect
+                    ouiaId="template-bulk-select"
+                    isDataPaginated
+                    canSelectAll
+                    pageCount={slice.length}
+                    selectedCount={selected.size}
+                    totalCount={filtered.length}
+                    pageSelected={allOnPageSelected}
+                    pagePartiallySelected={partiallySelected}
+                    onSelect={onBulkSelect}
+                    popperProps={{ appendTo: () => document.body }}
+                    menuToggleCheckboxProps={{
+                      id: 'template-bulk-checkbox',
+                      'aria-label':
+                        selected.size > 0
+                          ? `Select rows, ${selected.size} of ${filtered.length} selected`
+                          : 'Select rows',
+                    }}
+                  />
+                </ToolbarItem>
+              </ToolbarGroup>
+            ) : null}
+
+            <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
+              <ToolbarItem style={{ flex: '0 0 auto', width: 420, maxWidth: 'min(560px, 100%)' }}>
+                <InputGroup>
+                  <InputGroupItem isFill>
+                    <SearchInput
+                      placeholder="Search"
+                      value={search}
+                      onChange={(_e, v) => setSearch(v)}
+                      onClear={() => {
+                        setSearch('');
+                        setPage(1);
+                      }}
+                      onSearch={() => submitSearch()}
+                      aria-label="Search templates"
+                    />
+                  </InputGroupItem>
+                  <InputGroupItem>
+                    <Dropdown
+                      isOpen={bookmarkOpen}
+                      onOpenChange={setBookmarkOpen}
+                      onSelect={handleBookmarkMenuSelect}
+                      toggle={(toggleRef) => (
+                        <MenuToggle
+                          ref={toggleRef}
+                          variant="default"
+                          isFullHeight
+                          className="app-template-search-bookmark-toggle"
+                          onClick={() => setBookmarkOpen(!bookmarkOpen)}
+                          isExpanded={bookmarkOpen}
+                          aria-label="Search bookmarks"
+                          icon={<OutlinedBookmarkIcon />}
+                        />
+                      )}
+                      popperProps={{ appendTo: () => document.body }}
+                    >
+                      <DropdownList>
+                        <DropdownItem
+                          value="bookmark-this-search"
+                          icon={<OutlinedBookmarkIcon />}
+                        >
+                          Bookmark this search
+                        </DropdownItem>
+                        <Divider component="li" />
+                        <DropdownGroup label="Saved bookmarks" labelHeadingLevel="h2">
+                          <DropdownList>
+                            <DropdownItem value="saved-b1">Bookmark 1</DropdownItem>
+                            <DropdownItem value="saved-b2">Bookmark 2</DropdownItem>
+                          </DropdownList>
+                        </DropdownGroup>
+                        <Divider component="li" />
+                        <DropdownItem value="manage-bookmarks">Manage bookmarks</DropdownItem>
+                        <DropdownItem value="documentation">Documentation</DropdownItem>
+                      </DropdownList>
+                    </Dropdown>
+                  </InputGroupItem>
+                </InputGroup>
+              </ToolbarItem>
+            </ToolbarGroup>
+
+            <ToolbarGroup spacer={{ default: 'spacerMd' }} spaceItems={{ default: 'spaceItemsNone' }}>
+              <ToolbarItem>
+                <Button variant="primary">Create item</Button>
+              </ToolbarItem>
+              <ToolbarItem style={{ marginLeft: spacingMd }}>
+                <Button
+                  type="button"
+                  variant="plain"
+                  aria-label="Manage columns"
+                  onClick={openManageColumnsModal}
+                  icon={<ColumnsIcon />}
+                />
+              </ToolbarItem>
+              <ToolbarItem>
+                <Dropdown
+                  isOpen={toolbarKebabOpen}
+                  onSelect={() => setToolbarKebabOpen(false)}
+                  onOpenChange={setToolbarKebabOpen}
+                  toggle={(toggleRef) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      variant="plain"
+                      onClick={() => setToolbarKebabOpen(!toolbarKebabOpen)}
+                      isExpanded={toolbarKebabOpen}
+                      aria-label="Toolbar actions"
+                    >
+                      <EllipsisVIcon />
+                    </MenuToggle>
+                  )}
+                  popperProps={{ appendTo: () => document.body }}
+                >
+                  <DropdownList>
+                    <DropdownItem key="t1">Toolbar action A</DropdownItem>
+                    <DropdownItem key="t2">Toolbar action B</DropdownItem>
+                  </DropdownList>
+                </Dropdown>
+              </ToolbarItem>
+            </ToolbarGroup>
+
+            <ToolbarGroup align={{ default: 'alignRight' }}>
+              <ToolbarItem>
+                <Pagination
+                  itemCount={itemCount}
+                  perPage={perPage}
+                  page={safePage}
+                  onSetPage={(_e, nextPage) => setPage(nextPage)}
+                  onPerPageSelect={(_e, nextPerPage, nextPage) => {
+                    setPerPage(nextPerPage);
+                    setPage(nextPage);
+                  }}
+                  variant={PaginationVariant.top}
+                  isCompact
+                  ouiaId="template-index-pagination-top"
+                />
+              </ToolbarItem>
+            </ToolbarGroup>
+          </ToolbarContent>
+        </Toolbar>
+
+        <Table
+          aria-label="Template data"
+          variant="compact"
+          borders
+          ouiaId="template-index-table"
+          className="app-table-expand-header-caret app-table-expand-no-middle-rule"
+          isExpandable
+          style={{ marginBottom: 0, width: '100%' }}
+        >
+          <Thead>
+            <Tr>
+              <Th
+                screenReaderText="Expand row"
+                expand={
+                  slice.length > 0
+                    ? {
+                        areAllExpanded: expandAll,
+                        onToggle: (_e, _rowIndex, allExpandedOnPage) => {
+                          if (allExpandedOnPage) {
+                            setExpanded((prev) => {
+                              const next = new Set(prev);
+                              slice.forEach((r) => next.delete(r.id));
+                              return next;
+                            });
+                          } else {
+                            setExpanded((prev) => {
+                              const next = new Set(prev);
+                              slice.forEach((r) => next.add(r.id));
+                              return next;
+                            });
+                          }
+                        },
+                        collapseAllAriaLabel: 'Collapse all rows',
+                      }
+                    : undefined
+                }
+              />
+              {!hideSelection ? <Th screenReaderText="Select row" /> : null}
+              {columnVisibility.name ? <Th style={thNowrap}>Name</Th> : null}
+              {columnVisibility.status ? <Th style={thNowrap}>Status</Th> : null}
+              {columnVisibility.lastModified ? (
+                <Th style={{ ...thNowrap, minWidth: '11rem' }}>Last modified</Th>
+              ) : null}
+              <Th screenReaderText="Actions" />
+            </Tr>
+          </Thead>
+          <Tbody>
+            {slice.map((row, rowIndex) => {
+              const isEx = expanded.has(row.id);
+              return (
+                <React.Fragment key={row.id}>
+                  <Tr isExpanded={isEx ? true : undefined} isStriped={rowIndex % 2 === 1}>
+                    <Td
+                      expand={{
+                        isExpanded: isEx,
+                        rowIndex,
+                        onToggle: (_e, _rIdx, isOpen) => toggleExpand(row.id, isOpen),
+                      }}
+                    />
+                    {!hideSelection ? (
+                      <Td
+                        select={{
+                          rowIndex,
+                          onSelect: (_e, isSelected) => toggleRow(row.id, isSelected),
+                          isSelected: selected.has(row.id),
+                          variant: 'checkbox',
+                        }}
+                      />
+                    ) : null}
+                    {columnVisibility.name ? (
+                      <Td dataLabel="Name">
+                        <Button
+                          variant="link"
+                          isInline
+                          onClick={() =>
+                            navigate(row.href ?? `/template/${encodeURIComponent(row.name)}`)
+                          }
+                        >
+                          {row.name}
+                        </Button>
+                      </Td>
+                    ) : null}
+                    {columnVisibility.status ? <Td dataLabel="Status">{row.status}</Td> : null}
+                    {columnVisibility.lastModified ? (
+                      <Td dataLabel="Last modified">{row.lastModified}</Td>
+                    ) : null}
+                    <Td isActionCell>
+                      <Dropdown
+                        isOpen={openActionId === row.id}
+                        onOpenChange={(open) => setOpenActionId(open ? row.id : null)}
+                        toggle={(toggleRef) => (
+                          <MenuToggle
+                            ref={toggleRef}
+                            variant="plain"
+                            onClick={() => setOpenActionId(openActionId === row.id ? null : row.id)}
+                            isExpanded={openActionId === row.id}
+                            aria-label={`Actions for ${row.name}`}
+                          >
+                            <EllipsisVIcon />
+                          </MenuToggle>
+                        )}
+                        popperProps={{ appendTo: () => document.body }}
+                      >
+                        <DropdownList>
+                          <DropdownItem key="a1">Action 1</DropdownItem>
+                          <DropdownItem key="a2">Action 2</DropdownItem>
+                          <DropdownItem key="a3">Action 3</DropdownItem>
+                        </DropdownList>
+                      </Dropdown>
+                    </Td>
+                  </Tr>
+                  <Tr isExpanded={isEx} isHidden={!isEx} isStriped={rowIndex % 2 === 1}>
+                    <Td colSpan={tableBodyColSpan}>
+                      <ExpandableRowContent>
+                        <Text>{row.detail}</Text>
+                      </ExpandableRowContent>
+                    </Td>
+                  </Tr>
+                </React.Fragment>
+              );
+            })}
+          </Tbody>
+        </Table>
+
+        <Pagination
+          itemCount={itemCount}
+          perPage={perPage}
+          page={safePage}
+          onSetPage={(_e, nextPage) => setPage(nextPage)}
+          onPerPageSelect={(_e, nextPerPage, nextPage) => {
+            setPerPage(nextPerPage);
+            setPage(nextPage);
+          }}
+          variant={PaginationVariant.bottom}
+          isStatic
+          isCompact
+          titles={paginationTitles}
+          toggleTemplate={({ firstIndex, lastIndex, itemCount: total }) => (
+            <span>
+              {firstIndex} - {lastIndex} of {total}
+            </span>
+          )}
+          ouiaId="template-index-pagination-bottom"
+          style={{
+            marginTop: spacingMd,
+            paddingTop: 0,
+            paddingLeft: 0,
+            paddingRight: 0,
+            paddingInline: 0,
+          }}
+        />
+        </section>
+      )}
 
       <Modal
         variant={ModalVariant.medium}

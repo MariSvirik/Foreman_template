@@ -239,6 +239,18 @@ const routes: AppRouteConfig[] = [
     title: 'PatternFly Seed | Template',
   },
   {
+    element: <TemplateIndex showCards />,
+    exact: true,
+    path: '/template/index-with-cards',
+    title: 'PatternFly Seed | Index with cards',
+  },
+  {
+    element: <TemplateIndex showCards showTabs />,
+    exact: true,
+    path: '/template/index-with-cards-and-tabs',
+    title: 'PatternFly Seed | Index with cards and tabs',
+  },
+  {
     element: <TemplateDetail />,
     exact: true,
     path: '/template/:templateId',

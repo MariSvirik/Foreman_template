@@ -455,8 +455,16 @@ const TemplateDetail: React.FunctionComponent = () => {
             </TextContent>
           </div>
 
-          {/* Divider */}
-          <Divider component="div" />
+          {/* Divider — 24px inset to match page side padding */}
+          <div
+            style={{
+              paddingRight: spacingL,
+              paddingLeft: spacingL,
+              boxSizing: 'border-box',
+            }}
+          >
+            <Divider component="div" />
+          </div>
 
           {/* Secondary header */}
           <div
