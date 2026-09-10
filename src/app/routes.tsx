@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Dashboard } from '@app/Dashboard/Dashboard';
 import { Repositories } from '@app/Repositories/Repositories';
 import { PowerPuffGirl } from '@app/PowerPuffGirl/PowerPuffGirl';
 import { AddToContainerfile } from '@app/AddToContainerfile/AddToContainerfile';
@@ -32,7 +31,6 @@ import { SyncPlanDetail } from '@app/SyncPlans/SyncPlanDetail';
 import { SyncStatus } from '@app/SyncStatus/SyncStatus';
 import { ContainerImages } from '@app/ContainerImages/ContainerImages';
 import { FlatpakRemotes } from '@app/FlatpakRemotes/FlatpakRemotes';
-import { Lifecycle } from '@app/Lifecycle/Lifecycle';
 import { NotFound } from '@app/NotFound/NotFound';
 
 export interface IAppRoute {
@@ -54,11 +52,17 @@ export type AppRouteConfig = IAppRoute | IAppRouteGroup;
 // Products route has been removed - do not add it back
 const routes: AppRouteConfig[] = [
   {
-    element: <Dashboard />,
+    element: <TemplateIndex />,
     exact: true,
-    label: 'Dashboard',
+    label: 'Template',
     path: '/',
-    title: 'PatternFly Seed | Main Dashboard',
+    title: 'PatternFly Seed | Template',
+  },
+  {
+    element: <TemplateIndex />,
+    exact: true,
+    path: '/template',
+    title: 'PatternFly Seed | Template',
   },
   {
     label: 'Content',
@@ -133,13 +137,6 @@ const routes: AppRouteConfig[] = [
     exact: true,
     path: '/sync-plans/:syncPlanId',
     title: 'PatternFly Seed | Sync Plan Detail',
-  },
-  {
-    element: <Lifecycle />,
-    exact: true,
-    label: 'Lifecycle',
-    path: '/lifecycle',
-    title: 'PatternFly Seed | Lifecycle',
   },
   {
     element: <ErrataIndex />,
@@ -230,13 +227,6 @@ const routes: AppRouteConfig[] = [
     exact: true,
     path: '/tasks/:taskId',
     title: 'PatternFly Seed | Task Detail',
-  },
-  {
-    element: <TemplateIndex />,
-    exact: true,
-    label: 'Template',
-    path: '/template',
-    title: 'PatternFly Seed | Template',
   },
   {
     element: <TemplateIndex showCards />,
